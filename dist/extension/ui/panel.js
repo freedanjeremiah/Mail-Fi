@@ -19306,6 +19306,15 @@ function App() {
   const [connected, setConnected] = import_react.default.useState(false);
   const [to, setTo] = import_react.default.useState("");
   const [amount, setAmount] = import_react.default.useState("");
+  import_react.default.useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data?.type === "SET_RECIPIENT" && event.data.recipient) {
+        setTo(event.data.recipient);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
   const connect = async () => {
     setConnected(true);
   };

@@ -6,6 +6,17 @@ function App() {
   const [to, setTo] = React.useState("");
   const [amount, setAmount] = React.useState("");
 
+  React.useEffect(() => {
+    // Listen for messages from content script (e.g., pre-fill recipient from compose)
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "SET_RECIPIENT" && event.data.recipient) {
+        setTo(event.data.recipient);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
   const connect = async () => {
     // TODO: connect to Avail wallet / Nexus SDK
     setConnected(true);

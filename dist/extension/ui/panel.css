@@ -12,3 +12,29 @@
   cursor: pointer;
   z-index: 2147483647;
 }
+
+.mailfi-compose-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font: 500 14px "Google Sans", Roboto, sans-serif;
+  color: #5f6368;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.mailfi-compose-btn:hover {
+  background: rgba(60, 64, 67, 0.08);
+}
+
+.mailfi-compose-btn:active {
+  background: rgba(60, 64, 67, 0.12);
+}
+
+.mailfi-compose-btn svg {
+  fill: #5f6368;
+}
