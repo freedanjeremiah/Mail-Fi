@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Mail‑Fi: Avail in Gmail",
+  "version": "0.1.0",
+  "description": "Send, receive, and invest with Avail Nexus without leaving Gmail.",
+  "permissions": ["scripting", "storage"],
+  "host_permissions": ["https://mail.google.com/*"],
+  "background": {
+    "service_worker": "background/index.js",
+    "type": "module"
+  },
+  "action": { "default_title": "Mail‑Fi" },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["content/gmail.js"],
+      "css": ["ui/panel.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["ui/panel.html", "ui/panel.js", "ui/panel.css"],
+      "matches": ["https://mail.google.com/*"]
+    }
+  ]
+}

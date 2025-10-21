@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../extension/background/index.ts"],
+  "sourcesContent": ["chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {\r\n  if (msg?.type === \"PING\") {\r\n    sendResponse({ ok: true });\r\n  }\r\n  // TODO: bridge to your Next.js API (fetch to /api/* if needed)\r\n  return true;\r\n});\r\n"],
+  "mappings": ";AAAA,OAAO,QAAQ,UAAU,YAAY,CAAC,KAAK,SAAS,iBAAiB;AACnE,MAAI,KAAK,SAAS,QAAQ;AACxB,iBAAa,EAAE,IAAI,KAAK,CAAC;AAAA,EAC3B;AAEA,SAAO;AACT,CAAC;",
+  "names": []
+}

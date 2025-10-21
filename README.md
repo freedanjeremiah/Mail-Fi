@@ -34,3 +34,34 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Browser Extension (Mail‑Fi for Gmail)
+
+This repo also contains a Chrome Manifest V3 extension that injects a payment panel into Gmail and will integrate with Avail Nexus.
+
+### Build
+
+```powershell
+npm run build:ext
+```
+
+Artifacts will be placed in `dist/extension`.
+
+### Load in Chrome
+
+1. Open `chrome://extensions`
+2. Toggle on "Developer mode"
+3. Click "Load unpacked" and select the `dist/extension` folder
+4. Open Gmail (https://mail.google.com). A "Pay with Avail" floating button appears. Click it to open the panel.
+
+### Development
+
+Watch and rebuild on changes:
+
+```powershell
+npm run watch:ext
+```
+
+### API Stubs
+
+An example route handler exists at `src/app/api/payments/route.ts` for server-side actions; wire this to Avail Nexus as needed.
