@@ -19302,10 +19302,20 @@ var require_client = __commonJS({
 // extension/ui/panel.tsx
 var import_react = __toESM(require_react());
 var import_client = __toESM(require_client());
+var API_BASE = "http://localhost:3000";
 function App() {
   const [connected, setConnected] = import_react.default.useState(false);
+  const [active, setActive] = import_react.default.useState("send");
   const [to, setTo] = import_react.default.useState("");
   const [amount, setAmount] = import_react.default.useState("");
+  const [requestAmount, setRequestAmount] = import_react.default.useState("");
+  const [requestNote, setRequestNote] = import_react.default.useState("");
+  const [invTitle, setInvTitle] = import_react.default.useState("");
+  const [invGoal, setInvGoal] = import_react.default.useState("");
+  const [invDesc, setInvDesc] = import_react.default.useState("");
+  const [fundId, setFundId] = import_react.default.useState("");
+  const [fundAmount, setFundAmount] = import_react.default.useState("");
+  const [busy, setBusy] = import_react.default.useState(false);
   import_react.default.useEffect(() => {
     const handleMessage = (event) => {
       if (event.data?.type === "SET_RECIPIENT" && event.data.recipient) {
@@ -19320,9 +19330,96 @@ function App() {
   };
   const sendPayment = async () => {
     if (!connected) return alert("Connect wallet first");
-    alert(`Pretend sending ${amount} to ${to} on Avail`);
+    if (!to || !amount) return alert("Recipient and amount are required");
+    setBusy(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/payments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "send", to, amount })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Failed to send");
+      alert(`Sent: txId=${json.txId}`);
+    } catch (e) {
+      alert(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
   };
-  return /* @__PURE__ */ import_react.default.createElement("div", { style: { padding: 16, fontFamily: "ui-sans-serif, system-ui" } }, /* @__PURE__ */ import_react.default.createElement("h3", { style: { marginTop: 0 } }, "Mail\u2011Fi \xB7 Avail"), /* @__PURE__ */ import_react.default.createElement("button", { onClick: connect, style: { marginBottom: 12 } }, connected ? "Wallet Connected" : "Connect Wallet"), /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Recipient", value: to, onChange: (e) => setTo(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: amount, onChange: (e) => setAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: sendPayment }, "Send")), /* @__PURE__ */ import_react.default.createElement("hr", { style: { margin: "16px 0" } }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => alert("Invest flow TBD") }, "Invest"), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => alert("Fund project flow TBD") }, "Fund Project"));
+  const createRequest = async () => {
+    if (!connected) return alert("Connect wallet first");
+    if (!requestAmount) return alert("Amount is required");
+    setBusy(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/payments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "request", amount: requestAmount, note: requestNote })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Failed to create request");
+      await navigator.clipboard.writeText(json.requestUrl);
+      alert("Payment request link copied to clipboard");
+    } catch (e) {
+      alert(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const createInvestment = async () => {
+    if (!connected) return alert("Connect wallet first");
+    if (!invTitle || !invGoal) return alert("Title and goal are required");
+    setBusy(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/investments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: invTitle, goal: invGoal, description: invDesc })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Failed to create investment");
+      alert(`Created investment: id=${json.id}`);
+    } catch (e) {
+      alert(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const fundInvestment = async () => {
+    if (!connected) return alert("Connect wallet first");
+    if (!fundId || !fundAmount) return alert("Investment ID and amount are required");
+    setBusy(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/investments/${encodeURIComponent(fundId)}/fund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: fundAmount })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Failed to fund investment");
+      alert(`Funded: txId=${json.txId}`);
+    } catch (e) {
+      alert(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return /* @__PURE__ */ import_react.default.createElement("div", { style: { padding: 16, fontFamily: "ui-sans-serif, system-ui", width: 340 } }, /* @__PURE__ */ import_react.default.createElement("h3", { style: { marginTop: 0, marginBottom: 8 } }, "Mail\u2011Fi \xB7 Avail"), /* @__PURE__ */ import_react.default.createElement("button", { onClick: connect, style: { marginBottom: 12 }, disabled: busy }, connected ? "Wallet Connected" : "Connect Wallet"), /* @__PURE__ */ import_react.default.createElement("nav", { style: { display: "flex", gap: 8, marginBottom: 12 } }, ["send", "request", "invest", "fund"].map((t) => /* @__PURE__ */ import_react.default.createElement(
+    "button",
+    {
+      key: t,
+      onClick: () => setActive(t),
+      style: {
+        padding: "6px 10px",
+        borderRadius: 6,
+        border: "1px solid #e5e7eb",
+        background: active === t ? "#111827" : "white",
+        color: active === t ? "white" : "#111827"
+      }
+    },
+    t[0].toUpperCase() + t.slice(1)
+  ))), active === "send" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Recipient", value: to, onChange: (e) => setTo(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: amount, onChange: (e) => setAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: sendPayment, disabled: busy }, "Send")), active === "request" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: requestAmount, onChange: (e) => setRequestAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Note (optional)", value: requestNote, onChange: (e) => setRequestNote(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: createRequest, disabled: busy }, "Create request link")), active === "invest" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Title", value: invTitle, onChange: (e) => setInvTitle(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Goal amount", value: invGoal, onChange: (e) => setInvGoal(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("textarea", { placeholder: "Description", value: invDesc, onChange: (e) => setInvDesc(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: createInvestment, disabled: busy }, "Create investment")), active === "fund" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Investment ID", value: fundId, onChange: (e) => setFundId(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: fundAmount, onChange: (e) => setFundAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: fundInvestment, disabled: busy }, "Fund")));
 }
 var root = (0, import_client.createRoot)(document.getElementById("root"));
 root.render(/* @__PURE__ */ import_react.default.createElement(App, null));

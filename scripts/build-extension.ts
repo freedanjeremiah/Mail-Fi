@@ -19,7 +19,7 @@ const common = {
   bundle: true,
   minify: false,
   sourcemap: true,
-  target: ["chrome114"],
+  target: "chrome114",
 } as const;
 
 async function run() {

@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "description": "Send, receive, and invest with Avail Nexus without leaving Gmail.",
   "permissions": ["scripting", "storage"],
-  "host_permissions": ["https://mail.google.com/*"],
+  "host_permissions": [
+    "https://mail.google.com/*",
+    "http://localhost:3000/*"
+  ],
   "background": {
     "service_worker": "background/index.js",
     "type": "module"

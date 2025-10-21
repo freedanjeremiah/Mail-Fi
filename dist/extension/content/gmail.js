@@ -43,6 +43,7 @@ function togglePanel(panel, recipient) {
 }
 function injectComposeButton(composeWindow, panel) {
   const toolbar = composeWindow.querySelector('[role="toolbar"]');
+  console.log("[Mail-Fi] Toolbar found:", !!toolbar, composeWindow);
   if (!toolbar) return;
   const existingBtn = toolbar.querySelector(".mailfi-compose-btn");
   if (existingBtn) return;
@@ -71,13 +72,15 @@ function injectComposeButton(composeWindow, panel) {
 }
 function observeComposeWindows(panel) {
   const observer = new MutationObserver(() => {
-    const composeWindows = document.querySelectorAll('[role="dialog"][aria-label*="compose"], .M9, [role="region"][aria-label*="compose"]');
+    const composeWindows = document.querySelectorAll('[role="dialog"], div[class*="M9"]');
+    console.log("[Mail-Fi] Found compose windows:", composeWindows.length);
     composeWindows.forEach((win) => {
       injectComposeButton(win, panel);
     });
   });
   observer.observe(document.body, { childList: true, subtree: true });
-  const existingComposeWindows = document.querySelectorAll('[role="dialog"][aria-label*="compose"], .M9, [role="region"][aria-label*="compose"]');
+  const existingComposeWindows = document.querySelectorAll('[role="dialog"], div[class*="M9"]');
+  console.log("[Mail-Fi] Initial compose windows:", existingComposeWindows.length);
   existingComposeWindows.forEach((win) => {
     injectComposeButton(win, panel);
   });
