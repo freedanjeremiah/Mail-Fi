@@ -4,14 +4,17 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
+var __copyProps = (to, from2, except, desc) => {
+  if (from2 && typeof from2 === "object" || typeof from2 === "function") {
+    for (let key of __getOwnPropNames(from2))
       if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+        __defProp(to, key, { get: () => from2[key], enumerable: !(desc = __getOwnPropDesc(from2, key)) || desc.enumerable });
   }
   return to;
 };
@@ -24,10 +27,1773 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// node_modules/@esbuild-plugins/node-globals-polyfill/process.js
+function defaultSetTimout() {
+  throw new Error("setTimeout has not been defined");
+}
+function defaultClearTimeout() {
+  throw new Error("clearTimeout has not been defined");
+}
+function runTimeout(fun) {
+  if (cachedSetTimeout === setTimeout) {
+    return setTimeout(fun, 0);
+  }
+  if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+    cachedSetTimeout = setTimeout;
+    return setTimeout(fun, 0);
+  }
+  try {
+    return cachedSetTimeout(fun, 0);
+  } catch (e) {
+    try {
+      return cachedSetTimeout.call(null, fun, 0);
+    } catch (e2) {
+      return cachedSetTimeout.call(this, fun, 0);
+    }
+  }
+}
+function runClearTimeout(marker) {
+  if (cachedClearTimeout === clearTimeout) {
+    return clearTimeout(marker);
+  }
+  if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+    cachedClearTimeout = clearTimeout;
+    return clearTimeout(marker);
+  }
+  try {
+    return cachedClearTimeout(marker);
+  } catch (e) {
+    try {
+      return cachedClearTimeout.call(null, marker);
+    } catch (e2) {
+      return cachedClearTimeout.call(this, marker);
+    }
+  }
+}
+function cleanUpNextTick() {
+  if (!draining || !currentQueue) {
+    return;
+  }
+  draining = false;
+  if (currentQueue.length) {
+    queue = currentQueue.concat(queue);
+  } else {
+    queueIndex = -1;
+  }
+  if (queue.length) {
+    drainQueue();
+  }
+}
+function drainQueue() {
+  if (draining) {
+    return;
+  }
+  var timeout = runTimeout(cleanUpNextTick);
+  draining = true;
+  var len = queue.length;
+  while (len) {
+    currentQueue = queue;
+    queue = [];
+    while (++queueIndex < len) {
+      if (currentQueue) {
+        currentQueue[queueIndex].run();
+      }
+    }
+    queueIndex = -1;
+    len = queue.length;
+  }
+  currentQueue = null;
+  draining = false;
+  runClearTimeout(timeout);
+}
+function nextTick(fun) {
+  var args = new Array(arguments.length - 1);
+  if (arguments.length > 1) {
+    for (var i = 1; i < arguments.length; i++) {
+      args[i - 1] = arguments[i];
+    }
+  }
+  queue.push(new Item(fun, args));
+  if (queue.length === 1 && !draining) {
+    runTimeout(drainQueue);
+  }
+}
+function Item(fun, array) {
+  this.fun = fun;
+  this.array = array;
+}
+function noop() {
+}
+function binding(name) {
+  throw new Error("process.binding is not supported");
+}
+function cwd() {
+  return "/";
+}
+function chdir(dir) {
+  throw new Error("process.chdir is not supported");
+}
+function umask() {
+  return 0;
+}
+function hrtime(previousTimestamp) {
+  var clocktime = performanceNow.call(performance2) * 1e-3;
+  var seconds = Math.floor(clocktime);
+  var nanoseconds = Math.floor(clocktime % 1 * 1e9);
+  if (previousTimestamp) {
+    seconds = seconds - previousTimestamp[0];
+    nanoseconds = nanoseconds - previousTimestamp[1];
+    if (nanoseconds < 0) {
+      seconds--;
+      nanoseconds += 1e9;
+    }
+  }
+  return [seconds, nanoseconds];
+}
+function uptime() {
+  var currentTime = /* @__PURE__ */ new Date();
+  var dif = currentTime - startTime;
+  return dif / 1e3;
+}
+var cachedSetTimeout, cachedClearTimeout, queue, draining, currentQueue, queueIndex, title, platform, browser, env, argv, version, versions, release, config, on, addListener, once, off, removeListener, removeAllListeners, emit, performance2, performanceNow, startTime, process, defines;
+var init_process = __esm({
+  "node_modules/@esbuild-plugins/node-globals-polyfill/process.js"() {
+    cachedSetTimeout = defaultSetTimout;
+    cachedClearTimeout = defaultClearTimeout;
+    if (typeof globalThis.setTimeout === "function") {
+      cachedSetTimeout = setTimeout;
+    }
+    if (typeof globalThis.clearTimeout === "function") {
+      cachedClearTimeout = clearTimeout;
+    }
+    queue = [];
+    draining = false;
+    queueIndex = -1;
+    Item.prototype.run = function() {
+      this.fun.apply(null, this.array);
+    };
+    title = "browser";
+    platform = "browser";
+    browser = true;
+    env = {};
+    argv = [];
+    version = "";
+    versions = {};
+    release = {};
+    config = {};
+    on = noop;
+    addListener = noop;
+    once = noop;
+    off = noop;
+    removeListener = noop;
+    removeAllListeners = noop;
+    emit = noop;
+    performance2 = globalThis.performance || {};
+    performanceNow = performance2.now || performance2.mozNow || performance2.msNow || performance2.oNow || performance2.webkitNow || function() {
+      return (/* @__PURE__ */ new Date()).getTime();
+    };
+    startTime = /* @__PURE__ */ new Date();
+    process = {
+      nextTick,
+      title,
+      browser,
+      env,
+      argv,
+      version,
+      versions,
+      on,
+      addListener,
+      once,
+      off,
+      removeListener,
+      removeAllListeners,
+      emit,
+      binding,
+      cwd,
+      chdir,
+      umask,
+      hrtime,
+      platform,
+      release,
+      config,
+      uptime
+    };
+    defines = {};
+    Object.keys(defines).forEach((key) => {
+      const segs = key.split(".");
+      let target = process;
+      for (let i = 0; i < segs.length; i++) {
+        const seg = segs[i];
+        if (i === segs.length - 1) {
+          target[seg] = defines[key];
+        } else {
+          target = target[seg] || (target[seg] = {});
+        }
+      }
+    });
+  }
+});
+
+// node_modules/@esbuild-plugins/node-globals-polyfill/Buffer.js
+function init() {
+  inited = true;
+  var code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  for (var i = 0, len = code.length; i < len; ++i) {
+    lookup[i] = code[i];
+    revLookup[code.charCodeAt(i)] = i;
+  }
+  revLookup["-".charCodeAt(0)] = 62;
+  revLookup["_".charCodeAt(0)] = 63;
+}
+function base64toByteArray(b64) {
+  if (!inited) {
+    init();
+  }
+  var i, j, l, tmp, placeHolders, arr;
+  var len = b64.length;
+  if (len % 4 > 0) {
+    throw new Error("Invalid string. Length must be a multiple of 4");
+  }
+  placeHolders = b64[len - 2] === "=" ? 2 : b64[len - 1] === "=" ? 1 : 0;
+  arr = new Arr(len * 3 / 4 - placeHolders);
+  l = placeHolders > 0 ? len - 4 : len;
+  var L = 0;
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
+    tmp = revLookup[b64.charCodeAt(i)] << 18 | revLookup[b64.charCodeAt(i + 1)] << 12 | revLookup[b64.charCodeAt(i + 2)] << 6 | revLookup[b64.charCodeAt(i + 3)];
+    arr[L++] = tmp >> 16 & 255;
+    arr[L++] = tmp >> 8 & 255;
+    arr[L++] = tmp & 255;
+  }
+  if (placeHolders === 2) {
+    tmp = revLookup[b64.charCodeAt(i)] << 2 | revLookup[b64.charCodeAt(i + 1)] >> 4;
+    arr[L++] = tmp & 255;
+  } else if (placeHolders === 1) {
+    tmp = revLookup[b64.charCodeAt(i)] << 10 | revLookup[b64.charCodeAt(i + 1)] << 4 | revLookup[b64.charCodeAt(i + 2)] >> 2;
+    arr[L++] = tmp >> 8 & 255;
+    arr[L++] = tmp & 255;
+  }
+  return arr;
+}
+function tripletToBase64(num) {
+  return lookup[num >> 18 & 63] + lookup[num >> 12 & 63] + lookup[num >> 6 & 63] + lookup[num & 63];
+}
+function encodeChunk(uint8, start, end) {
+  var tmp;
+  var output = [];
+  for (var i = start; i < end; i += 3) {
+    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + uint8[i + 2];
+    output.push(tripletToBase64(tmp));
+  }
+  return output.join("");
+}
+function base64fromByteArray(uint8) {
+  if (!inited) {
+    init();
+  }
+  var tmp;
+  var len = uint8.length;
+  var extraBytes = len % 3;
+  var output = "";
+  var parts = [];
+  var maxChunkLength = 16383;
+  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
+    parts.push(
+      encodeChunk(
+        uint8,
+        i,
+        i + maxChunkLength > len2 ? len2 : i + maxChunkLength
+      )
+    );
+  }
+  if (extraBytes === 1) {
+    tmp = uint8[len - 1];
+    output += lookup[tmp >> 2];
+    output += lookup[tmp << 4 & 63];
+    output += "==";
+  } else if (extraBytes === 2) {
+    tmp = (uint8[len - 2] << 8) + uint8[len - 1];
+    output += lookup[tmp >> 10];
+    output += lookup[tmp >> 4 & 63];
+    output += lookup[tmp << 2 & 63];
+    output += "=";
+  }
+  parts.push(output);
+  return parts.join("");
+}
+function kMaxLength() {
+  return Buffer2.TYPED_ARRAY_SUPPORT ? 2147483647 : 1073741823;
+}
+function createBuffer(that, length) {
+  if (kMaxLength() < length) {
+    throw new RangeError("Invalid typed array length");
+  }
+  if (Buffer2.TYPED_ARRAY_SUPPORT) {
+    that = new Uint8Array(length);
+    that.__proto__ = Buffer2.prototype;
+  } else {
+    if (that === null) {
+      that = new Buffer2(length);
+    }
+    that.length = length;
+  }
+  return that;
+}
+function Buffer2(arg, encodingOrOffset, length) {
+  if (!Buffer2.TYPED_ARRAY_SUPPORT && !(this instanceof Buffer2)) {
+    return new Buffer2(arg, encodingOrOffset, length);
+  }
+  if (typeof arg === "number") {
+    if (typeof encodingOrOffset === "string") {
+      throw new Error(
+        "If encoding is specified then the first argument must be a string"
+      );
+    }
+    return allocUnsafe(this, arg);
+  }
+  return from(this, arg, encodingOrOffset, length);
+}
+function from(that, value, encodingOrOffset, length) {
+  if (typeof value === "number") {
+    throw new TypeError('"value" argument must not be a number');
+  }
+  if (typeof ArrayBuffer !== "undefined" && value instanceof ArrayBuffer) {
+    return fromArrayBuffer(that, value, encodingOrOffset, length);
+  }
+  if (typeof value === "string") {
+    return fromString(that, value, encodingOrOffset);
+  }
+  return fromObject(that, value);
+}
+function assertSize(size) {
+  if (typeof size !== "number") {
+    throw new TypeError('"size" argument must be a number');
+  } else if (size < 0) {
+    throw new RangeError('"size" argument must not be negative');
+  }
+}
+function alloc(that, size, fill2, encoding) {
+  assertSize(size);
+  if (size <= 0) {
+    return createBuffer(that, size);
+  }
+  if (fill2 !== void 0) {
+    return typeof encoding === "string" ? createBuffer(that, size).fill(fill2, encoding) : createBuffer(that, size).fill(fill2);
+  }
+  return createBuffer(that, size);
+}
+function allocUnsafe(that, size) {
+  assertSize(size);
+  that = createBuffer(that, size < 0 ? 0 : checked(size) | 0);
+  if (!Buffer2.TYPED_ARRAY_SUPPORT) {
+    for (var i = 0; i < size; ++i) {
+      that[i] = 0;
+    }
+  }
+  return that;
+}
+function fromString(that, string, encoding) {
+  if (typeof encoding !== "string" || encoding === "") {
+    encoding = "utf8";
+  }
+  if (!Buffer2.isEncoding(encoding)) {
+    throw new TypeError('"encoding" must be a valid string encoding');
+  }
+  var length = byteLength(string, encoding) | 0;
+  that = createBuffer(that, length);
+  var actual = that.write(string, encoding);
+  if (actual !== length) {
+    that = that.slice(0, actual);
+  }
+  return that;
+}
+function fromArrayLike(that, array) {
+  var length = array.length < 0 ? 0 : checked(array.length) | 0;
+  that = createBuffer(that, length);
+  for (var i = 0; i < length; i += 1) {
+    that[i] = array[i] & 255;
+  }
+  return that;
+}
+function fromArrayBuffer(that, array, byteOffset, length) {
+  array.byteLength;
+  if (byteOffset < 0 || array.byteLength < byteOffset) {
+    throw new RangeError("'offset' is out of bounds");
+  }
+  if (array.byteLength < byteOffset + (length || 0)) {
+    throw new RangeError("'length' is out of bounds");
+  }
+  if (byteOffset === void 0 && length === void 0) {
+    array = new Uint8Array(array);
+  } else if (length === void 0) {
+    array = new Uint8Array(array, byteOffset);
+  } else {
+    array = new Uint8Array(array, byteOffset, length);
+  }
+  if (Buffer2.TYPED_ARRAY_SUPPORT) {
+    that = array;
+    that.__proto__ = Buffer2.prototype;
+  } else {
+    that = fromArrayLike(that, array);
+  }
+  return that;
+}
+function fromObject(that, obj) {
+  if (internalIsBuffer(obj)) {
+    var len = checked(obj.length) | 0;
+    that = createBuffer(that, len);
+    if (that.length === 0) {
+      return that;
+    }
+    obj.copy(that, 0, 0, len);
+    return that;
+  }
+  if (obj) {
+    if (typeof ArrayBuffer !== "undefined" && obj.buffer instanceof ArrayBuffer || "length" in obj) {
+      if (typeof obj.length !== "number" || isnan(obj.length)) {
+        return createBuffer(that, 0);
+      }
+      return fromArrayLike(that, obj);
+    }
+    if (obj.type === "Buffer" && Array.isArray(obj.data)) {
+      return fromArrayLike(that, obj.data);
+    }
+  }
+  throw new TypeError(
+    "First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object."
+  );
+}
+function checked(length) {
+  if (length >= kMaxLength()) {
+    throw new RangeError(
+      "Attempt to allocate Buffer larger than maximum size: 0x" + kMaxLength().toString(16) + " bytes"
+    );
+  }
+  return length | 0;
+}
+function internalIsBuffer(b) {
+  return !!(b != null && b._isBuffer);
+}
+function byteLength(string, encoding) {
+  if (internalIsBuffer(string)) {
+    return string.length;
+  }
+  if (typeof ArrayBuffer !== "undefined" && typeof ArrayBuffer.isView === "function" && (ArrayBuffer.isView(string) || string instanceof ArrayBuffer)) {
+    return string.byteLength;
+  }
+  if (typeof string !== "string") {
+    string = "" + string;
+  }
+  var len = string.length;
+  if (len === 0) return 0;
+  var loweredCase = false;
+  for (; ; ) {
+    switch (encoding) {
+      case "ascii":
+      case "latin1":
+      case "binary":
+        return len;
+      case "utf8":
+      case "utf-8":
+      case void 0:
+        return utf8ToBytes(string).length;
+      case "ucs2":
+      case "ucs-2":
+      case "utf16le":
+      case "utf-16le":
+        return len * 2;
+      case "hex":
+        return len >>> 1;
+      case "base64":
+        return base64ToBytes(string).length;
+      default:
+        if (loweredCase) return utf8ToBytes(string).length;
+        encoding = ("" + encoding).toLowerCase();
+        loweredCase = true;
+    }
+  }
+}
+function slowToString(encoding, start, end) {
+  var loweredCase = false;
+  if (start === void 0 || start < 0) {
+    start = 0;
+  }
+  if (start > this.length) {
+    return "";
+  }
+  if (end === void 0 || end > this.length) {
+    end = this.length;
+  }
+  if (end <= 0) {
+    return "";
+  }
+  end >>>= 0;
+  start >>>= 0;
+  if (end <= start) {
+    return "";
+  }
+  if (!encoding) encoding = "utf8";
+  while (true) {
+    switch (encoding) {
+      case "hex":
+        return hexSlice(this, start, end);
+      case "utf8":
+      case "utf-8":
+        return utf8Slice(this, start, end);
+      case "ascii":
+        return asciiSlice(this, start, end);
+      case "latin1":
+      case "binary":
+        return latin1Slice(this, start, end);
+      case "base64":
+        return base64Slice(this, start, end);
+      case "ucs2":
+      case "ucs-2":
+      case "utf16le":
+      case "utf-16le":
+        return utf16leSlice(this, start, end);
+      default:
+        if (loweredCase)
+          throw new TypeError("Unknown encoding: " + encoding);
+        encoding = (encoding + "").toLowerCase();
+        loweredCase = true;
+    }
+  }
+}
+function swap(b, n, m) {
+  var i = b[n];
+  b[n] = b[m];
+  b[m] = i;
+}
+function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir) {
+  if (buffer.length === 0) return -1;
+  if (typeof byteOffset === "string") {
+    encoding = byteOffset;
+    byteOffset = 0;
+  } else if (byteOffset > 2147483647) {
+    byteOffset = 2147483647;
+  } else if (byteOffset < -2147483648) {
+    byteOffset = -2147483648;
+  }
+  byteOffset = +byteOffset;
+  if (isNaN(byteOffset)) {
+    byteOffset = dir ? 0 : buffer.length - 1;
+  }
+  if (byteOffset < 0) byteOffset = buffer.length + byteOffset;
+  if (byteOffset >= buffer.length) {
+    if (dir) return -1;
+    else byteOffset = buffer.length - 1;
+  } else if (byteOffset < 0) {
+    if (dir) byteOffset = 0;
+    else return -1;
+  }
+  if (typeof val === "string") {
+    val = Buffer2.from(val, encoding);
+  }
+  if (internalIsBuffer(val)) {
+    if (val.length === 0) {
+      return -1;
+    }
+    return arrayIndexOf(buffer, val, byteOffset, encoding, dir);
+  } else if (typeof val === "number") {
+    val = val & 255;
+    if (Buffer2.TYPED_ARRAY_SUPPORT && typeof Uint8Array.prototype.indexOf === "function") {
+      if (dir) {
+        return Uint8Array.prototype.indexOf.call(
+          buffer,
+          val,
+          byteOffset
+        );
+      } else {
+        return Uint8Array.prototype.lastIndexOf.call(
+          buffer,
+          val,
+          byteOffset
+        );
+      }
+    }
+    return arrayIndexOf(buffer, [val], byteOffset, encoding, dir);
+  }
+  throw new TypeError("val must be string, number or Buffer");
+}
+function arrayIndexOf(arr, val, byteOffset, encoding, dir) {
+  var indexSize = 1;
+  var arrLength = arr.length;
+  var valLength = val.length;
+  if (encoding !== void 0) {
+    encoding = String(encoding).toLowerCase();
+    if (encoding === "ucs2" || encoding === "ucs-2" || encoding === "utf16le" || encoding === "utf-16le") {
+      if (arr.length < 2 || val.length < 2) {
+        return -1;
+      }
+      indexSize = 2;
+      arrLength /= 2;
+      valLength /= 2;
+      byteOffset /= 2;
+    }
+  }
+  function read(buf, i2) {
+    if (indexSize === 1) {
+      return buf[i2];
+    } else {
+      return buf.readUInt16BE(i2 * indexSize);
+    }
+  }
+  var i;
+  if (dir) {
+    var foundIndex = -1;
+    for (i = byteOffset; i < arrLength; i++) {
+      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
+        if (foundIndex === -1) foundIndex = i;
+        if (i - foundIndex + 1 === valLength)
+          return foundIndex * indexSize;
+      } else {
+        if (foundIndex !== -1) i -= i - foundIndex;
+        foundIndex = -1;
+      }
+    }
+  } else {
+    if (byteOffset + valLength > arrLength)
+      byteOffset = arrLength - valLength;
+    for (i = byteOffset; i >= 0; i--) {
+      var found = true;
+      for (var j = 0; j < valLength; j++) {
+        if (read(arr, i + j) !== read(val, j)) {
+          found = false;
+          break;
+        }
+      }
+      if (found) return i;
+    }
+  }
+  return -1;
+}
+function hexWrite(buf, string, offset, length) {
+  offset = Number(offset) || 0;
+  var remaining = buf.length - offset;
+  if (!length) {
+    length = remaining;
+  } else {
+    length = Number(length);
+    if (length > remaining) {
+      length = remaining;
+    }
+  }
+  var strLen = string.length;
+  if (strLen % 2 !== 0) throw new TypeError("Invalid hex string");
+  if (length > strLen / 2) {
+    length = strLen / 2;
+  }
+  for (var i = 0; i < length; ++i) {
+    var parsed = parseInt(string.substr(i * 2, 2), 16);
+    if (isNaN(parsed)) return i;
+    buf[offset + i] = parsed;
+  }
+  return i;
+}
+function utf8Write(buf, string, offset, length) {
+  return blitBuffer(
+    utf8ToBytes(string, buf.length - offset),
+    buf,
+    offset,
+    length
+  );
+}
+function asciiWrite(buf, string, offset, length) {
+  return blitBuffer(asciiToBytes(string), buf, offset, length);
+}
+function latin1Write(buf, string, offset, length) {
+  return asciiWrite(buf, string, offset, length);
+}
+function base64Write(buf, string, offset, length) {
+  return blitBuffer(base64ToBytes(string), buf, offset, length);
+}
+function ucs2Write(buf, string, offset, length) {
+  return blitBuffer(
+    utf16leToBytes(string, buf.length - offset),
+    buf,
+    offset,
+    length
+  );
+}
+function base64Slice(buf, start, end) {
+  if (start === 0 && end === buf.length) {
+    return base64fromByteArray(buf);
+  } else {
+    return base64fromByteArray(buf.slice(start, end));
+  }
+}
+function utf8Slice(buf, start, end) {
+  end = Math.min(buf.length, end);
+  var res = [];
+  var i = start;
+  while (i < end) {
+    var firstByte = buf[i];
+    var codePoint = null;
+    var bytesPerSequence = firstByte > 239 ? 4 : firstByte > 223 ? 3 : firstByte > 191 ? 2 : 1;
+    if (i + bytesPerSequence <= end) {
+      var secondByte, thirdByte, fourthByte, tempCodePoint;
+      switch (bytesPerSequence) {
+        case 1:
+          if (firstByte < 128) {
+            codePoint = firstByte;
+          }
+          break;
+        case 2:
+          secondByte = buf[i + 1];
+          if ((secondByte & 192) === 128) {
+            tempCodePoint = (firstByte & 31) << 6 | secondByte & 63;
+            if (tempCodePoint > 127) {
+              codePoint = tempCodePoint;
+            }
+          }
+          break;
+        case 3:
+          secondByte = buf[i + 1];
+          thirdByte = buf[i + 2];
+          if ((secondByte & 192) === 128 && (thirdByte & 192) === 128) {
+            tempCodePoint = (firstByte & 15) << 12 | (secondByte & 63) << 6 | thirdByte & 63;
+            if (tempCodePoint > 2047 && (tempCodePoint < 55296 || tempCodePoint > 57343)) {
+              codePoint = tempCodePoint;
+            }
+          }
+          break;
+        case 4:
+          secondByte = buf[i + 1];
+          thirdByte = buf[i + 2];
+          fourthByte = buf[i + 3];
+          if ((secondByte & 192) === 128 && (thirdByte & 192) === 128 && (fourthByte & 192) === 128) {
+            tempCodePoint = (firstByte & 15) << 18 | (secondByte & 63) << 12 | (thirdByte & 63) << 6 | fourthByte & 63;
+            if (tempCodePoint > 65535 && tempCodePoint < 1114112) {
+              codePoint = tempCodePoint;
+            }
+          }
+      }
+    }
+    if (codePoint === null) {
+      codePoint = 65533;
+      bytesPerSequence = 1;
+    } else if (codePoint > 65535) {
+      codePoint -= 65536;
+      res.push(codePoint >>> 10 & 1023 | 55296);
+      codePoint = 56320 | codePoint & 1023;
+    }
+    res.push(codePoint);
+    i += bytesPerSequence;
+  }
+  return decodeCodePointsArray(res);
+}
+function decodeCodePointsArray(codePoints) {
+  var len = codePoints.length;
+  if (len <= MAX_ARGUMENTS_LENGTH) {
+    return String.fromCharCode.apply(String, codePoints);
+  }
+  var res = "";
+  var i = 0;
+  while (i < len) {
+    res += String.fromCharCode.apply(
+      String,
+      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+    );
+  }
+  return res;
+}
+function asciiSlice(buf, start, end) {
+  var ret = "";
+  end = Math.min(buf.length, end);
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i] & 127);
+  }
+  return ret;
+}
+function latin1Slice(buf, start, end) {
+  var ret = "";
+  end = Math.min(buf.length, end);
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i]);
+  }
+  return ret;
+}
+function hexSlice(buf, start, end) {
+  var len = buf.length;
+  if (!start || start < 0) start = 0;
+  if (!end || end < 0 || end > len) end = len;
+  var out = "";
+  for (var i = start; i < end; ++i) {
+    out += toHex(buf[i]);
+  }
+  return out;
+}
+function utf16leSlice(buf, start, end) {
+  var bytes = buf.slice(start, end);
+  var res = "";
+  for (var i = 0; i < bytes.length; i += 2) {
+    res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256);
+  }
+  return res;
+}
+function checkOffset(offset, ext, length) {
+  if (offset % 1 !== 0 || offset < 0)
+    throw new RangeError("offset is not uint");
+  if (offset + ext > length)
+    throw new RangeError("Trying to access beyond buffer length");
+}
+function checkInt(buf, value, offset, ext, max, min) {
+  if (!internalIsBuffer(buf))
+    throw new TypeError('"buffer" argument must be a Buffer instance');
+  if (value > max || value < min)
+    throw new RangeError('"value" argument is out of bounds');
+  if (offset + ext > buf.length) throw new RangeError("Index out of range");
+}
+function objectWriteUInt16(buf, value, offset, littleEndian) {
+  if (value < 0) value = 65535 + value + 1;
+  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; ++i) {
+    buf[offset + i] = (value & 255 << 8 * (littleEndian ? i : 1 - i)) >>> (littleEndian ? i : 1 - i) * 8;
+  }
+}
+function objectWriteUInt32(buf, value, offset, littleEndian) {
+  if (value < 0) value = 4294967295 + value + 1;
+  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; ++i) {
+    buf[offset + i] = value >>> (littleEndian ? i : 3 - i) * 8 & 255;
+  }
+}
+function checkIEEE754(buf, value, offset, ext, max, min) {
+  if (offset + ext > buf.length) throw new RangeError("Index out of range");
+  if (offset < 0) throw new RangeError("Index out of range");
+}
+function writeFloat(buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    checkIEEE754(
+      buf,
+      value,
+      offset,
+      4,
+      34028234663852886e22,
+      -34028234663852886e22
+    );
+  }
+  ieee754write(buf, value, offset, littleEndian, 23, 4);
+  return offset + 4;
+}
+function writeDouble(buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    checkIEEE754(
+      buf,
+      value,
+      offset,
+      8,
+      17976931348623157e292,
+      -17976931348623157e292
+    );
+  }
+  ieee754write(buf, value, offset, littleEndian, 52, 8);
+  return offset + 8;
+}
+function base64clean(str) {
+  str = stringtrim(str).replace(INVALID_BASE64_RE, "");
+  if (str.length < 2) return "";
+  while (str.length % 4 !== 0) {
+    str = str + "=";
+  }
+  return str;
+}
+function stringtrim(str) {
+  if (str.trim) return str.trim();
+  return str.replace(/^\s+|\s+$/g, "");
+}
+function toHex(n) {
+  if (n < 16) return "0" + n.toString(16);
+  return n.toString(16);
+}
+function utf8ToBytes(string, units) {
+  units = units || Infinity;
+  var codePoint;
+  var length = string.length;
+  var leadSurrogate = null;
+  var bytes = [];
+  for (var i = 0; i < length; ++i) {
+    codePoint = string.charCodeAt(i);
+    if (codePoint > 55295 && codePoint < 57344) {
+      if (!leadSurrogate) {
+        if (codePoint > 56319) {
+          if ((units -= 3) > -1) bytes.push(239, 191, 189);
+          continue;
+        } else if (i + 1 === length) {
+          if ((units -= 3) > -1) bytes.push(239, 191, 189);
+          continue;
+        }
+        leadSurrogate = codePoint;
+        continue;
+      }
+      if (codePoint < 56320) {
+        if ((units -= 3) > -1) bytes.push(239, 191, 189);
+        leadSurrogate = codePoint;
+        continue;
+      }
+      codePoint = (leadSurrogate - 55296 << 10 | codePoint - 56320) + 65536;
+    } else if (leadSurrogate) {
+      if ((units -= 3) > -1) bytes.push(239, 191, 189);
+    }
+    leadSurrogate = null;
+    if (codePoint < 128) {
+      if ((units -= 1) < 0) break;
+      bytes.push(codePoint);
+    } else if (codePoint < 2048) {
+      if ((units -= 2) < 0) break;
+      bytes.push(codePoint >> 6 | 192, codePoint & 63 | 128);
+    } else if (codePoint < 65536) {
+      if ((units -= 3) < 0) break;
+      bytes.push(
+        codePoint >> 12 | 224,
+        codePoint >> 6 & 63 | 128,
+        codePoint & 63 | 128
+      );
+    } else if (codePoint < 1114112) {
+      if ((units -= 4) < 0) break;
+      bytes.push(
+        codePoint >> 18 | 240,
+        codePoint >> 12 & 63 | 128,
+        codePoint >> 6 & 63 | 128,
+        codePoint & 63 | 128
+      );
+    } else {
+      throw new Error("Invalid code point");
+    }
+  }
+  return bytes;
+}
+function asciiToBytes(str) {
+  var byteArray = [];
+  for (var i = 0; i < str.length; ++i) {
+    byteArray.push(str.charCodeAt(i) & 255);
+  }
+  return byteArray;
+}
+function utf16leToBytes(str, units) {
+  var c, hi, lo;
+  var byteArray = [];
+  for (var i = 0; i < str.length; ++i) {
+    if ((units -= 2) < 0) break;
+    c = str.charCodeAt(i);
+    hi = c >> 8;
+    lo = c % 256;
+    byteArray.push(lo);
+    byteArray.push(hi);
+  }
+  return byteArray;
+}
+function base64ToBytes(str) {
+  return base64toByteArray(base64clean(str));
+}
+function blitBuffer(src, dst, offset, length) {
+  for (var i = 0; i < length; ++i) {
+    if (i + offset >= dst.length || i >= src.length) break;
+    dst[i + offset] = src[i];
+  }
+  return i;
+}
+function isnan(val) {
+  return val !== val;
+}
+function isBuffer(obj) {
+  return obj != null && (!!obj._isBuffer || isFastBuffer(obj) || isSlowBuffer(obj));
+}
+function isFastBuffer(obj) {
+  return !!obj.constructor && typeof obj.constructor.isBuffer === "function" && obj.constructor.isBuffer(obj);
+}
+function isSlowBuffer(obj) {
+  return typeof obj.readFloatLE === "function" && typeof obj.slice === "function" && isFastBuffer(obj.slice(0, 0));
+}
+function ieee754read(buffer, offset, isLE, mLen, nBytes) {
+  var e, m;
+  var eLen = nBytes * 8 - mLen - 1;
+  var eMax = (1 << eLen) - 1;
+  var eBias = eMax >> 1;
+  var nBits = -7;
+  var i = isLE ? nBytes - 1 : 0;
+  var d = isLE ? -1 : 1;
+  var s = buffer[offset + i];
+  i += d;
+  e = s & (1 << -nBits) - 1;
+  s >>= -nBits;
+  nBits += eLen;
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {
+  }
+  m = e & (1 << -nBits) - 1;
+  e >>= -nBits;
+  nBits += mLen;
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {
+  }
+  if (e === 0) {
+    e = 1 - eBias;
+  } else if (e === eMax) {
+    return m ? NaN : (s ? -1 : 1) * Infinity;
+  } else {
+    m = m + Math.pow(2, mLen);
+    e = e - eBias;
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
+}
+function ieee754write(buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c;
+  var eLen = nBytes * 8 - mLen - 1;
+  var eMax = (1 << eLen) - 1;
+  var eBias = eMax >> 1;
+  var rt = mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0;
+  var i = isLE ? 0 : nBytes - 1;
+  var d = isLE ? 1 : -1;
+  var s = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0;
+  value = Math.abs(value);
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0;
+    e = eMax;
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2);
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--;
+      c *= 2;
+    }
+    if (e + eBias >= 1) {
+      value += rt / c;
+    } else {
+      value += rt * Math.pow(2, 1 - eBias);
+    }
+    if (value * c >= 2) {
+      e++;
+      c /= 2;
+    }
+    if (e + eBias >= eMax) {
+      m = 0;
+      e = eMax;
+    } else if (e + eBias >= 1) {
+      m = (value * c - 1) * Math.pow(2, mLen);
+      e = e + eBias;
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+      e = 0;
+    }
+  }
+  for (; mLen >= 8; buffer[offset + i] = m & 255, i += d, m /= 256, mLen -= 8) {
+  }
+  e = e << mLen | m;
+  eLen += mLen;
+  for (; eLen > 0; buffer[offset + i] = e & 255, i += d, e /= 256, eLen -= 8) {
+  }
+  buffer[offset + i - d] |= s * 128;
+}
+var lookup, revLookup, Arr, inited, MAX_ARGUMENTS_LENGTH, INVALID_BASE64_RE;
+var init_Buffer = __esm({
+  "node_modules/@esbuild-plugins/node-globals-polyfill/Buffer.js"() {
+    init_process();
+    init_buffer();
+    lookup = [];
+    revLookup = [];
+    Arr = typeof Uint8Array !== "undefined" ? Uint8Array : Array;
+    inited = false;
+    Buffer2.TYPED_ARRAY_SUPPORT = globalThis.TYPED_ARRAY_SUPPORT !== void 0 ? globalThis.TYPED_ARRAY_SUPPORT : true;
+    Buffer2.poolSize = 8192;
+    Buffer2._augment = function(arr) {
+      arr.__proto__ = Buffer2.prototype;
+      return arr;
+    };
+    Buffer2.from = function(value, encodingOrOffset, length) {
+      return from(null, value, encodingOrOffset, length);
+    };
+    Buffer2.kMaxLength = kMaxLength();
+    if (Buffer2.TYPED_ARRAY_SUPPORT) {
+      Buffer2.prototype.__proto__ = Uint8Array.prototype;
+      Buffer2.__proto__ = Uint8Array;
+      if (typeof Symbol !== "undefined" && Symbol.species && Buffer2[Symbol.species] === Buffer2) {
+      }
+    }
+    Buffer2.alloc = function(size, fill2, encoding) {
+      return alloc(null, size, fill2, encoding);
+    };
+    Buffer2.allocUnsafe = function(size) {
+      return allocUnsafe(null, size);
+    };
+    Buffer2.allocUnsafeSlow = function(size) {
+      return allocUnsafe(null, size);
+    };
+    Buffer2.isBuffer = isBuffer;
+    Buffer2.compare = function compare(a, b) {
+      if (!internalIsBuffer(a) || !internalIsBuffer(b)) {
+        throw new TypeError("Arguments must be Buffers");
+      }
+      if (a === b) return 0;
+      var x = a.length;
+      var y = b.length;
+      for (var i = 0, len = Math.min(x, y); i < len; ++i) {
+        if (a[i] !== b[i]) {
+          x = a[i];
+          y = b[i];
+          break;
+        }
+      }
+      if (x < y) return -1;
+      if (y < x) return 1;
+      return 0;
+    };
+    Buffer2.isEncoding = function isEncoding(encoding) {
+      switch (String(encoding).toLowerCase()) {
+        case "hex":
+        case "utf8":
+        case "utf-8":
+        case "ascii":
+        case "latin1":
+        case "binary":
+        case "base64":
+        case "ucs2":
+        case "ucs-2":
+        case "utf16le":
+        case "utf-16le":
+          return true;
+        default:
+          return false;
+      }
+    };
+    Buffer2.concat = function concat(list, length) {
+      if (!Array.isArray(list)) {
+        throw new TypeError('"list" argument must be an Array of Buffers');
+      }
+      if (list.length === 0) {
+        return Buffer2.alloc(0);
+      }
+      var i;
+      if (length === void 0) {
+        length = 0;
+        for (i = 0; i < list.length; ++i) {
+          length += list[i].length;
+        }
+      }
+      var buffer = Buffer2.allocUnsafe(length);
+      var pos = 0;
+      for (i = 0; i < list.length; ++i) {
+        var buf = list[i];
+        if (!internalIsBuffer(buf)) {
+          throw new TypeError('"list" argument must be an Array of Buffers');
+        }
+        buf.copy(buffer, pos);
+        pos += buf.length;
+      }
+      return buffer;
+    };
+    Buffer2.byteLength = byteLength;
+    Buffer2.prototype._isBuffer = true;
+    Buffer2.prototype.swap16 = function swap16() {
+      var len = this.length;
+      if (len % 2 !== 0) {
+        throw new RangeError("Buffer size must be a multiple of 16-bits");
+      }
+      for (var i = 0; i < len; i += 2) {
+        swap(this, i, i + 1);
+      }
+      return this;
+    };
+    Buffer2.prototype.swap32 = function swap32() {
+      var len = this.length;
+      if (len % 4 !== 0) {
+        throw new RangeError("Buffer size must be a multiple of 32-bits");
+      }
+      for (var i = 0; i < len; i += 4) {
+        swap(this, i, i + 3);
+        swap(this, i + 1, i + 2);
+      }
+      return this;
+    };
+    Buffer2.prototype.swap64 = function swap64() {
+      var len = this.length;
+      if (len % 8 !== 0) {
+        throw new RangeError("Buffer size must be a multiple of 64-bits");
+      }
+      for (var i = 0; i < len; i += 8) {
+        swap(this, i, i + 7);
+        swap(this, i + 1, i + 6);
+        swap(this, i + 2, i + 5);
+        swap(this, i + 3, i + 4);
+      }
+      return this;
+    };
+    Buffer2.prototype.toString = function toString() {
+      var length = this.length | 0;
+      if (length === 0) return "";
+      if (arguments.length === 0) return utf8Slice(this, 0, length);
+      return slowToString.apply(this, arguments);
+    };
+    Buffer2.prototype.equals = function equals(b) {
+      if (!internalIsBuffer(b)) throw new TypeError("Argument must be a Buffer");
+      if (this === b) return true;
+      return Buffer2.compare(this, b) === 0;
+    };
+    Buffer2.prototype.compare = function compare2(target, start, end, thisStart, thisEnd) {
+      if (!internalIsBuffer(target)) {
+        throw new TypeError("Argument must be a Buffer");
+      }
+      if (start === void 0) {
+        start = 0;
+      }
+      if (end === void 0) {
+        end = target ? target.length : 0;
+      }
+      if (thisStart === void 0) {
+        thisStart = 0;
+      }
+      if (thisEnd === void 0) {
+        thisEnd = this.length;
+      }
+      if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
+        throw new RangeError("out of range index");
+      }
+      if (thisStart >= thisEnd && start >= end) {
+        return 0;
+      }
+      if (thisStart >= thisEnd) {
+        return -1;
+      }
+      if (start >= end) {
+        return 1;
+      }
+      start >>>= 0;
+      end >>>= 0;
+      thisStart >>>= 0;
+      thisEnd >>>= 0;
+      if (this === target) return 0;
+      var x = thisEnd - thisStart;
+      var y = end - start;
+      var len = Math.min(x, y);
+      var thisCopy = this.slice(thisStart, thisEnd);
+      var targetCopy = target.slice(start, end);
+      for (var i = 0; i < len; ++i) {
+        if (thisCopy[i] !== targetCopy[i]) {
+          x = thisCopy[i];
+          y = targetCopy[i];
+          break;
+        }
+      }
+      if (x < y) return -1;
+      if (y < x) return 1;
+      return 0;
+    };
+    Buffer2.prototype.includes = function includes(val, byteOffset, encoding) {
+      return this.indexOf(val, byteOffset, encoding) !== -1;
+    };
+    Buffer2.prototype.indexOf = function indexOf(val, byteOffset, encoding) {
+      return bidirectionalIndexOf(this, val, byteOffset, encoding, true);
+    };
+    Buffer2.prototype.lastIndexOf = function lastIndexOf(val, byteOffset, encoding) {
+      return bidirectionalIndexOf(this, val, byteOffset, encoding, false);
+    };
+    Buffer2.prototype.write = function write(string, offset, length, encoding) {
+      if (offset === void 0) {
+        encoding = "utf8";
+        length = this.length;
+        offset = 0;
+      } else if (length === void 0 && typeof offset === "string") {
+        encoding = offset;
+        length = this.length;
+        offset = 0;
+      } else if (isFinite(offset)) {
+        offset = offset | 0;
+        if (isFinite(length)) {
+          length = length | 0;
+          if (encoding === void 0) encoding = "utf8";
+        } else {
+          encoding = length;
+          length = void 0;
+        }
+      } else {
+        throw new Error(
+          "Buffer.write(string, encoding, offset[, length]) is no longer supported"
+        );
+      }
+      var remaining = this.length - offset;
+      if (length === void 0 || length > remaining) length = remaining;
+      if (string.length > 0 && (length < 0 || offset < 0) || offset > this.length) {
+        throw new RangeError("Attempt to write outside buffer bounds");
+      }
+      if (!encoding) encoding = "utf8";
+      var loweredCase = false;
+      for (; ; ) {
+        switch (encoding) {
+          case "hex":
+            return hexWrite(this, string, offset, length);
+          case "utf8":
+          case "utf-8":
+            return utf8Write(this, string, offset, length);
+          case "ascii":
+            return asciiWrite(this, string, offset, length);
+          case "latin1":
+          case "binary":
+            return latin1Write(this, string, offset, length);
+          case "base64":
+            return base64Write(this, string, offset, length);
+          case "ucs2":
+          case "ucs-2":
+          case "utf16le":
+          case "utf-16le":
+            return ucs2Write(this, string, offset, length);
+          default:
+            if (loweredCase)
+              throw new TypeError("Unknown encoding: " + encoding);
+            encoding = ("" + encoding).toLowerCase();
+            loweredCase = true;
+        }
+      }
+    };
+    Buffer2.prototype.toJSON = function toJSON() {
+      return {
+        type: "Buffer",
+        data: Array.prototype.slice.call(this._arr || this, 0)
+      };
+    };
+    MAX_ARGUMENTS_LENGTH = 4096;
+    Buffer2.prototype.slice = function slice(start, end) {
+      var len = this.length;
+      start = ~~start;
+      end = end === void 0 ? len : ~~end;
+      if (start < 0) {
+        start += len;
+        if (start < 0) start = 0;
+      } else if (start > len) {
+        start = len;
+      }
+      if (end < 0) {
+        end += len;
+        if (end < 0) end = 0;
+      } else if (end > len) {
+        end = len;
+      }
+      if (end < start) end = start;
+      var newBuf;
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        newBuf = this.subarray(start, end);
+        newBuf.__proto__ = Buffer2.prototype;
+      } else {
+        var sliceLen = end - start;
+        newBuf = new Buffer2(sliceLen, void 0);
+        for (var i = 0; i < sliceLen; ++i) {
+          newBuf[i] = this[i + start];
+        }
+      }
+      return newBuf;
+    };
+    Buffer2.prototype.readUIntLE = function readUIntLE(offset, byteLength2, noAssert) {
+      offset = offset | 0;
+      byteLength2 = byteLength2 | 0;
+      if (!noAssert) checkOffset(offset, byteLength2, this.length);
+      var val = this[offset];
+      var mul = 1;
+      var i = 0;
+      while (++i < byteLength2 && (mul *= 256)) {
+        val += this[offset + i] * mul;
+      }
+      return val;
+    };
+    Buffer2.prototype.readUIntBE = function readUIntBE(offset, byteLength2, noAssert) {
+      offset = offset | 0;
+      byteLength2 = byteLength2 | 0;
+      if (!noAssert) {
+        checkOffset(offset, byteLength2, this.length);
+      }
+      var val = this[offset + --byteLength2];
+      var mul = 1;
+      while (byteLength2 > 0 && (mul *= 256)) {
+        val += this[offset + --byteLength2] * mul;
+      }
+      return val;
+    };
+    Buffer2.prototype.readUInt8 = function readUInt8(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 1, this.length);
+      return this[offset];
+    };
+    Buffer2.prototype.readUInt16LE = function readUInt16LE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 2, this.length);
+      return this[offset] | this[offset + 1] << 8;
+    };
+    Buffer2.prototype.readUInt16BE = function readUInt16BE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 2, this.length);
+      return this[offset] << 8 | this[offset + 1];
+    };
+    Buffer2.prototype.readUInt32LE = function readUInt32LE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return (this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16) + this[offset + 3] * 16777216;
+    };
+    Buffer2.prototype.readUInt32BE = function readUInt32BE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return this[offset] * 16777216 + (this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3]);
+    };
+    Buffer2.prototype.readIntLE = function readIntLE(offset, byteLength2, noAssert) {
+      offset = offset | 0;
+      byteLength2 = byteLength2 | 0;
+      if (!noAssert) checkOffset(offset, byteLength2, this.length);
+      var val = this[offset];
+      var mul = 1;
+      var i = 0;
+      while (++i < byteLength2 && (mul *= 256)) {
+        val += this[offset + i] * mul;
+      }
+      mul *= 128;
+      if (val >= mul) val -= Math.pow(2, 8 * byteLength2);
+      return val;
+    };
+    Buffer2.prototype.readIntBE = function readIntBE(offset, byteLength2, noAssert) {
+      offset = offset | 0;
+      byteLength2 = byteLength2 | 0;
+      if (!noAssert) checkOffset(offset, byteLength2, this.length);
+      var i = byteLength2;
+      var mul = 1;
+      var val = this[offset + --i];
+      while (i > 0 && (mul *= 256)) {
+        val += this[offset + --i] * mul;
+      }
+      mul *= 128;
+      if (val >= mul) val -= Math.pow(2, 8 * byteLength2);
+      return val;
+    };
+    Buffer2.prototype.readInt8 = function readInt8(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 1, this.length);
+      if (!(this[offset] & 128)) return this[offset];
+      return (255 - this[offset] + 1) * -1;
+    };
+    Buffer2.prototype.readInt16LE = function readInt16LE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 2, this.length);
+      var val = this[offset] | this[offset + 1] << 8;
+      return val & 32768 ? val | 4294901760 : val;
+    };
+    Buffer2.prototype.readInt16BE = function readInt16BE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 2, this.length);
+      var val = this[offset + 1] | this[offset] << 8;
+      return val & 32768 ? val | 4294901760 : val;
+    };
+    Buffer2.prototype.readInt32LE = function readInt32LE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16 | this[offset + 3] << 24;
+    };
+    Buffer2.prototype.readInt32BE = function readInt32BE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return this[offset] << 24 | this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3];
+    };
+    Buffer2.prototype.readFloatLE = function readFloatLE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return ieee754read(this, offset, true, 23, 4);
+    };
+    Buffer2.prototype.readFloatBE = function readFloatBE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return ieee754read(this, offset, false, 23, 4);
+    };
+    Buffer2.prototype.readDoubleLE = function readDoubleLE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 8, this.length);
+      return ieee754read(this, offset, true, 52, 8);
+    };
+    Buffer2.prototype.readDoubleBE = function readDoubleBE(offset, noAssert) {
+      if (!noAssert) checkOffset(offset, 8, this.length);
+      return ieee754read(this, offset, false, 52, 8);
+    };
+    Buffer2.prototype.writeUIntLE = function writeUIntLE(value, offset, byteLength2, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      byteLength2 = byteLength2 | 0;
+      if (!noAssert) {
+        var maxBytes = Math.pow(2, 8 * byteLength2) - 1;
+        checkInt(this, value, offset, byteLength2, maxBytes, 0);
+      }
+      var mul = 1;
+      var i = 0;
+      this[offset] = value & 255;
+      while (++i < byteLength2 && (mul *= 256)) {
+        this[offset + i] = value / mul & 255;
+      }
+      return offset + byteLength2;
+    };
+    Buffer2.prototype.writeUIntBE = function writeUIntBE(value, offset, byteLength2, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      byteLength2 = byteLength2 | 0;
+      if (!noAssert) {
+        var maxBytes = Math.pow(2, 8 * byteLength2) - 1;
+        checkInt(this, value, offset, byteLength2, maxBytes, 0);
+      }
+      var i = byteLength2 - 1;
+      var mul = 1;
+      this[offset + i] = value & 255;
+      while (--i >= 0 && (mul *= 256)) {
+        this[offset + i] = value / mul & 255;
+      }
+      return offset + byteLength2;
+    };
+    Buffer2.prototype.writeUInt8 = function writeUInt8(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 1, 255, 0);
+      if (!Buffer2.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
+      this[offset] = value & 255;
+      return offset + 1;
+    };
+    Buffer2.prototype.writeUInt16LE = function writeUInt16LE(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 2, 65535, 0);
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        this[offset] = value & 255;
+        this[offset + 1] = value >>> 8;
+      } else {
+        objectWriteUInt16(this, value, offset, true);
+      }
+      return offset + 2;
+    };
+    Buffer2.prototype.writeUInt16BE = function writeUInt16BE(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 2, 65535, 0);
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        this[offset] = value >>> 8;
+        this[offset + 1] = value & 255;
+      } else {
+        objectWriteUInt16(this, value, offset, false);
+      }
+      return offset + 2;
+    };
+    Buffer2.prototype.writeUInt32LE = function writeUInt32LE(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 4, 4294967295, 0);
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        this[offset + 3] = value >>> 24;
+        this[offset + 2] = value >>> 16;
+        this[offset + 1] = value >>> 8;
+        this[offset] = value & 255;
+      } else {
+        objectWriteUInt32(this, value, offset, true);
+      }
+      return offset + 4;
+    };
+    Buffer2.prototype.writeUInt32BE = function writeUInt32BE(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 4, 4294967295, 0);
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        this[offset] = value >>> 24;
+        this[offset + 1] = value >>> 16;
+        this[offset + 2] = value >>> 8;
+        this[offset + 3] = value & 255;
+      } else {
+        objectWriteUInt32(this, value, offset, false);
+      }
+      return offset + 4;
+    };
+    Buffer2.prototype.writeIntLE = function writeIntLE(value, offset, byteLength2, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) {
+        var limit = Math.pow(2, 8 * byteLength2 - 1);
+        checkInt(this, value, offset, byteLength2, limit - 1, -limit);
+      }
+      var i = 0;
+      var mul = 1;
+      var sub = 0;
+      this[offset] = value & 255;
+      while (++i < byteLength2 && (mul *= 256)) {
+        if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
+          sub = 1;
+        }
+        this[offset + i] = (value / mul >> 0) - sub & 255;
+      }
+      return offset + byteLength2;
+    };
+    Buffer2.prototype.writeIntBE = function writeIntBE(value, offset, byteLength2, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) {
+        var limit = Math.pow(2, 8 * byteLength2 - 1);
+        checkInt(this, value, offset, byteLength2, limit - 1, -limit);
+      }
+      var i = byteLength2 - 1;
+      var mul = 1;
+      var sub = 0;
+      this[offset + i] = value & 255;
+      while (--i >= 0 && (mul *= 256)) {
+        if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
+          sub = 1;
+        }
+        this[offset + i] = (value / mul >> 0) - sub & 255;
+      }
+      return offset + byteLength2;
+    };
+    Buffer2.prototype.writeInt8 = function writeInt8(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 1, 127, -128);
+      if (!Buffer2.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
+      if (value < 0) value = 255 + value + 1;
+      this[offset] = value & 255;
+      return offset + 1;
+    };
+    Buffer2.prototype.writeInt16LE = function writeInt16LE(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 2, 32767, -32768);
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        this[offset] = value & 255;
+        this[offset + 1] = value >>> 8;
+      } else {
+        objectWriteUInt16(this, value, offset, true);
+      }
+      return offset + 2;
+    };
+    Buffer2.prototype.writeInt16BE = function writeInt16BE(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 2, 32767, -32768);
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        this[offset] = value >>> 8;
+        this[offset + 1] = value & 255;
+      } else {
+        objectWriteUInt16(this, value, offset, false);
+      }
+      return offset + 2;
+    };
+    Buffer2.prototype.writeInt32LE = function writeInt32LE(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 4, 2147483647, -2147483648);
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        this[offset] = value & 255;
+        this[offset + 1] = value >>> 8;
+        this[offset + 2] = value >>> 16;
+        this[offset + 3] = value >>> 24;
+      } else {
+        objectWriteUInt32(this, value, offset, true);
+      }
+      return offset + 4;
+    };
+    Buffer2.prototype.writeInt32BE = function writeInt32BE(value, offset, noAssert) {
+      value = +value;
+      offset = offset | 0;
+      if (!noAssert) checkInt(this, value, offset, 4, 2147483647, -2147483648);
+      if (value < 0) value = 4294967295 + value + 1;
+      if (Buffer2.TYPED_ARRAY_SUPPORT) {
+        this[offset] = value >>> 24;
+        this[offset + 1] = value >>> 16;
+        this[offset + 2] = value >>> 8;
+        this[offset + 3] = value & 255;
+      } else {
+        objectWriteUInt32(this, value, offset, false);
+      }
+      return offset + 4;
+    };
+    Buffer2.prototype.writeFloatLE = function writeFloatLE(value, offset, noAssert) {
+      return writeFloat(this, value, offset, true, noAssert);
+    };
+    Buffer2.prototype.writeFloatBE = function writeFloatBE(value, offset, noAssert) {
+      return writeFloat(this, value, offset, false, noAssert);
+    };
+    Buffer2.prototype.writeDoubleLE = function writeDoubleLE(value, offset, noAssert) {
+      return writeDouble(this, value, offset, true, noAssert);
+    };
+    Buffer2.prototype.writeDoubleBE = function writeDoubleBE(value, offset, noAssert) {
+      return writeDouble(this, value, offset, false, noAssert);
+    };
+    Buffer2.prototype.copy = function copy(target, targetStart, start, end) {
+      if (!start) start = 0;
+      if (!end && end !== 0) end = this.length;
+      if (targetStart >= target.length) targetStart = target.length;
+      if (!targetStart) targetStart = 0;
+      if (end > 0 && end < start) end = start;
+      if (end === start) return 0;
+      if (target.length === 0 || this.length === 0) return 0;
+      if (targetStart < 0) {
+        throw new RangeError("targetStart out of bounds");
+      }
+      if (start < 0 || start >= this.length)
+        throw new RangeError("sourceStart out of bounds");
+      if (end < 0) throw new RangeError("sourceEnd out of bounds");
+      if (end > this.length) end = this.length;
+      if (target.length - targetStart < end - start) {
+        end = target.length - targetStart + start;
+      }
+      var len = end - start;
+      var i;
+      if (this === target && start < targetStart && targetStart < end) {
+        for (i = len - 1; i >= 0; --i) {
+          target[i + targetStart] = this[i + start];
+        }
+      } else if (len < 1e3 || !Buffer2.TYPED_ARRAY_SUPPORT) {
+        for (i = 0; i < len; ++i) {
+          target[i + targetStart] = this[i + start];
+        }
+      } else {
+        Uint8Array.prototype.set.call(
+          target,
+          this.subarray(start, start + len),
+          targetStart
+        );
+      }
+      return len;
+    };
+    Buffer2.prototype.fill = function fill(val, start, end, encoding) {
+      if (typeof val === "string") {
+        if (typeof start === "string") {
+          encoding = start;
+          start = 0;
+          end = this.length;
+        } else if (typeof end === "string") {
+          encoding = end;
+          end = this.length;
+        }
+        if (val.length === 1) {
+          var code = val.charCodeAt(0);
+          if (code < 256) {
+            val = code;
+          }
+        }
+        if (encoding !== void 0 && typeof encoding !== "string") {
+          throw new TypeError("encoding must be a string");
+        }
+        if (typeof encoding === "string" && !Buffer2.isEncoding(encoding)) {
+          throw new TypeError("Unknown encoding: " + encoding);
+        }
+      } else if (typeof val === "number") {
+        val = val & 255;
+      }
+      if (start < 0 || this.length < start || this.length < end) {
+        throw new RangeError("Out of range index");
+      }
+      if (end <= start) {
+        return this;
+      }
+      start = start >>> 0;
+      end = end === void 0 ? this.length : end >>> 0;
+      if (!val) val = 0;
+      var i;
+      if (typeof val === "number") {
+        for (i = start; i < end; ++i) {
+          this[i] = val;
+        }
+      } else {
+        var bytes = internalIsBuffer(val) ? val : utf8ToBytes(new Buffer2(val, encoding).toString());
+        var len = bytes.length;
+        for (i = 0; i < end - start; ++i) {
+          this[i + start] = bytes[i % len];
+        }
+      }
+      return this;
+    };
+    INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g;
+  }
+});
+
+// node_modules/@esbuild-plugins/node-globals-polyfill/_buffer.js
+var init_buffer = __esm({
+  "node_modules/@esbuild-plugins/node-globals-polyfill/_buffer.js"() {
+    init_Buffer();
+  }
+});
+
 // node_modules/react/cjs/react.development.js
 var require_react_development = __commonJS({
   "node_modules/react/cjs/react.development.js"(exports, module) {
     "use strict";
+    init_process();
+    init_buffer();
     (function() {
       function defineDeprecationWarning(methodName, info) {
         Object.defineProperty(Component.prototype, methodName, {
@@ -155,12 +1921,12 @@ var require_react_development = __commonJS({
       function UnknownOwner() {
         return Error("react-stack-top-frame");
       }
-      function hasValidKey(config) {
-        if (hasOwnProperty.call(config, "key")) {
-          var getter = Object.getOwnPropertyDescriptor(config, "key").get;
+      function hasValidKey(config2) {
+        if (hasOwnProperty.call(config2, "key")) {
+          var getter = Object.getOwnPropertyDescriptor(config2, "key").get;
           if (getter && getter.isReactWarning) return false;
         }
-        return void 0 !== config.key;
+        return void 0 !== config2.key;
       }
       function defineKeyPropWarningGetter(props, displayName) {
         function warnAboutAccessingKey() {
@@ -397,7 +2163,7 @@ var require_react_development = __commonJS({
         );
         return dispatcher;
       }
-      function noop() {
+      function noop2() {
       }
       function enqueueTask(task) {
         if (null === enqueueTaskImpl)
@@ -429,11 +2195,11 @@ var require_react_development = __commonJS({
         actScopeDepth = prevActScopeDepth;
       }
       function recursivelyFlushAsyncActWork(returnValue, resolve, reject) {
-        var queue = ReactSharedInternals.actQueue;
-        if (null !== queue)
-          if (0 !== queue.length)
+        var queue2 = ReactSharedInternals.actQueue;
+        if (null !== queue2)
+          if (0 !== queue2.length)
             try {
-              flushActQueue(queue);
+              flushActQueue(queue2);
               enqueueTask(function() {
                 return recursivelyFlushAsyncActWork(returnValue, resolve, reject);
               });
@@ -442,31 +2208,31 @@ var require_react_development = __commonJS({
               ReactSharedInternals.thrownErrors.push(error);
             }
           else ReactSharedInternals.actQueue = null;
-        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve(returnValue);
+        0 < ReactSharedInternals.thrownErrors.length ? (queue2 = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue2)) : resolve(returnValue);
       }
-      function flushActQueue(queue) {
+      function flushActQueue(queue2) {
         if (!isFlushing) {
           isFlushing = true;
           var i = 0;
           try {
-            for (; i < queue.length; i++) {
-              var callback = queue[i];
+            for (; i < queue2.length; i++) {
+              var callback = queue2[i];
               do {
                 ReactSharedInternals.didUsePromise = false;
                 var continuation = callback(false);
                 if (null !== continuation) {
                   if (ReactSharedInternals.didUsePromise) {
-                    queue[i] = callback;
-                    queue.splice(0, i);
+                    queue2[i] = callback;
+                    queue2.splice(0, i);
                     return;
                   }
                   callback = continuation;
                 } else break;
               } while (1);
             }
-            queue.length = 0;
+            queue2.length = 0;
           } catch (error) {
-            queue.splice(0, i + 1), ReactSharedInternals.thrownErrors.push(error);
+            queue2.splice(0, i + 1), ReactSharedInternals.thrownErrors.push(error);
           } finally {
             isFlushing = false;
           }
@@ -610,7 +2376,7 @@ var require_react_development = __commonJS({
       exports.act = function(callback) {
         var prevActQueue = ReactSharedInternals.actQueue, prevActScopeDepth = actScopeDepth;
         actScopeDepth++;
-        var queue = ReactSharedInternals.actQueue = null !== prevActQueue ? prevActQueue : [], didAwaitActCall = false;
+        var queue2 = ReactSharedInternals.actQueue = null !== prevActQueue ? prevActQueue : [], didAwaitActCall = false;
         try {
           var result = callback();
         } catch (error) {
@@ -633,7 +2399,7 @@ var require_react_development = __commonJS({
                   popActScope(prevActQueue, prevActScopeDepth);
                   if (0 === prevActScopeDepth) {
                     try {
-                      flushActQueue(queue), enqueueTask(function() {
+                      flushActQueue(queue2), enqueueTask(function() {
                         return recursivelyFlushAsyncActWork(
                           returnValue,
                           resolve,
@@ -664,7 +2430,7 @@ var require_react_development = __commonJS({
         }
         var returnValue$jscomp$0 = result;
         popActScope(prevActQueue, prevActScopeDepth);
-        0 === prevActScopeDepth && (flushActQueue(queue), 0 !== queue.length && queueSeveralMicrotasks(function() {
+        0 === prevActScopeDepth && (flushActQueue(queue2), 0 !== queue2.length && queueSeveralMicrotasks(function() {
           didAwaitActCall || didWarnNoAwaitAct || (didWarnNoAwaitAct = true, console.error(
             "A component suspended inside an `act` scope, but the `act` call was not awaited. When testing React components that depend on asynchronous data, you must await the result:\n\nawait act(() => ...)"
           ));
@@ -674,7 +2440,7 @@ var require_react_development = __commonJS({
         return {
           then: function(resolve, reject) {
             didAwaitActCall = true;
-            0 === prevActScopeDepth ? (ReactSharedInternals.actQueue = queue, enqueueTask(function() {
+            0 === prevActScopeDepth ? (ReactSharedInternals.actQueue = queue2, enqueueTask(function() {
               return recursivelyFlushAsyncActWork(
                 returnValue$jscomp$0,
                 resolve,
@@ -693,28 +2459,28 @@ var require_react_development = __commonJS({
         var getCurrentStack = ReactSharedInternals.getCurrentStack;
         return null === getCurrentStack ? null : getCurrentStack();
       };
-      exports.cloneElement = function(element, config, children) {
+      exports.cloneElement = function(element, config2, children) {
         if (null === element || void 0 === element)
           throw Error(
             "The argument must be a React element, but you passed " + element + "."
           );
         var props = assign({}, element.props), key = element.key, owner = element._owner;
-        if (null != config) {
+        if (null != config2) {
           var JSCompiler_inline_result;
           a: {
-            if (hasOwnProperty.call(config, "ref") && (JSCompiler_inline_result = Object.getOwnPropertyDescriptor(
-              config,
+            if (hasOwnProperty.call(config2, "ref") && (JSCompiler_inline_result = Object.getOwnPropertyDescriptor(
+              config2,
               "ref"
             ).get) && JSCompiler_inline_result.isReactWarning) {
               JSCompiler_inline_result = false;
               break a;
             }
-            JSCompiler_inline_result = void 0 !== config.ref;
+            JSCompiler_inline_result = void 0 !== config2.ref;
           }
           JSCompiler_inline_result && (owner = getOwner());
-          hasValidKey(config) && (checkKeyStringCoercion(config.key), key = "" + config.key);
-          for (propName in config)
-            !hasOwnProperty.call(config, propName) || "key" === propName || "__self" === propName || "__source" === propName || "ref" === propName && void 0 === config.ref || (props[propName] = config[propName]);
+          hasValidKey(config2) && (checkKeyStringCoercion(config2.key), key = "" + config2.key);
+          for (propName in config2)
+            !hasOwnProperty.call(config2, propName) || "key" === propName || "__self" === propName || "__source" === propName || "ref" === propName && void 0 === config2.ref || (props[propName] = config2[propName]);
         }
         var propName = arguments.length - 2;
         if (1 === propName) props.children = children;
@@ -756,18 +2522,18 @@ var require_react_development = __commonJS({
         defaultValue._currentRenderer2 = null;
         return defaultValue;
       };
-      exports.createElement = function(type, config, children) {
+      exports.createElement = function(type, config2, children) {
         for (var i = 2; i < arguments.length; i++) {
           var node = arguments[i];
           isValidElement(node) && node._store && (node._store.validated = 1);
         }
         i = {};
         node = null;
-        if (null != config)
-          for (propName in didWarnAboutOldJSXRuntime || !("__self" in config) || "key" in config || (didWarnAboutOldJSXRuntime = true, console.warn(
+        if (null != config2)
+          for (propName in didWarnAboutOldJSXRuntime || !("__self" in config2) || "key" in config2 || (didWarnAboutOldJSXRuntime = true, console.warn(
             "Your app (or one of its dependencies) is using an outdated JSX transform. Update to the modern JSX transform for faster performance: https://react.dev/link/new-jsx-transform"
-          )), hasValidKey(config) && (checkKeyStringCoercion(config.key), node = "" + config.key), config)
-            hasOwnProperty.call(config, propName) && "key" !== propName && "__self" !== propName && "__source" !== propName && (i[propName] = config[propName]);
+          )), hasValidKey(config2) && (checkKeyStringCoercion(config2.key), node = "" + config2.key), config2)
+            hasOwnProperty.call(config2, propName) && "key" !== propName && "__self" !== propName && "__source" !== propName && (i[propName] = config2[propName]);
         var childrenLength = arguments.length - 2;
         if (1 === childrenLength) i.children = children;
         else if (1 < childrenLength) {
@@ -835,18 +2601,18 @@ var require_react_development = __commonJS({
           _init: lazyInitializer
         };
       };
-      exports.memo = function(type, compare) {
+      exports.memo = function(type, compare3) {
         null == type && console.error(
           "memo: The first argument must be a component. Instead received: %s",
           null === type ? "null" : typeof type
         );
-        compare = {
+        compare3 = {
           $$typeof: REACT_MEMO_TYPE,
           type,
-          compare: void 0 === compare ? null : compare
+          compare: void 0 === compare3 ? null : compare3
         };
         var ownName;
-        Object.defineProperty(compare, "displayName", {
+        Object.defineProperty(compare3, "displayName", {
           enumerable: false,
           configurable: true,
           get: function() {
@@ -857,7 +2623,7 @@ var require_react_development = __commonJS({
             type.name || type.displayName || (Object.defineProperty(type, "name", { value: name }), type.displayName = name);
           }
         });
-        return compare;
+        return compare3;
       };
       exports.startTransition = function(scope) {
         var prevTransition = ReactSharedInternals.T, currentTransition = {};
@@ -866,7 +2632,7 @@ var require_react_development = __commonJS({
         try {
           var returnValue = scope(), onStartTransitionFinish = ReactSharedInternals.S;
           null !== onStartTransitionFinish && onStartTransitionFinish(currentTransition, returnValue);
-          "object" === typeof returnValue && null !== returnValue && "function" === typeof returnValue.then && returnValue.then(noop, reportGlobalError);
+          "object" === typeof returnValue && null !== returnValue && "function" === typeof returnValue.then && returnValue.then(noop2, reportGlobalError);
         } catch (error) {
           reportGlobalError(error);
         } finally {
@@ -939,8 +2705,8 @@ var require_react_development = __commonJS({
       exports.useOptimistic = function(passthrough, reducer) {
         return resolveDispatcher().useOptimistic(passthrough, reducer);
       };
-      exports.useReducer = function(reducer, initialArg, init) {
-        return resolveDispatcher().useReducer(reducer, initialArg, init);
+      exports.useReducer = function(reducer, initialArg, init2) {
+        return resolveDispatcher().useReducer(reducer, initialArg, init2);
       };
       exports.useRef = function(initialValue) {
         return resolveDispatcher().useRef(initialValue);
@@ -968,6 +2734,8 @@ var require_react_development = __commonJS({
 var require_react = __commonJS({
   "node_modules/react/index.js"(exports, module) {
     "use strict";
+    init_process();
+    init_buffer();
     if (false) {
       module.exports = null;
     } else {
@@ -980,12 +2748,14 @@ var require_react = __commonJS({
 var require_scheduler_development = __commonJS({
   "node_modules/scheduler/cjs/scheduler.development.js"(exports) {
     "use strict";
+    init_process();
+    init_buffer();
     (function() {
       function performWorkUntilDeadline() {
         needsPaint = false;
         if (isMessageLoopRunning) {
           var currentTime = exports.unstable_now();
-          startTime = currentTime;
+          startTime2 = currentTime;
           var hasMoreWork = true;
           try {
             a: {
@@ -1042,7 +2812,7 @@ var require_scheduler_development = __commonJS({
         heap.push(node);
         a: for (; 0 < index; ) {
           var parentIndex = index - 1 >>> 1, parent = heap[parentIndex];
-          if (0 < compare(parent, node))
+          if (0 < compare3(parent, node))
             heap[parentIndex] = node, heap[index] = parent, index = parentIndex;
           else break a;
         }
@@ -1057,16 +2827,16 @@ var require_scheduler_development = __commonJS({
           heap[0] = last;
           a: for (var index = 0, length = heap.length, halfLength = length >>> 1; index < halfLength; ) {
             var leftIndex = 2 * (index + 1) - 1, left = heap[leftIndex], rightIndex = leftIndex + 1, right = heap[rightIndex];
-            if (0 > compare(left, last))
-              rightIndex < length && 0 > compare(right, left) ? (heap[index] = right, heap[rightIndex] = last, index = rightIndex) : (heap[index] = left, heap[leftIndex] = last, index = leftIndex);
-            else if (rightIndex < length && 0 > compare(right, last))
+            if (0 > compare3(left, last))
+              rightIndex < length && 0 > compare3(right, left) ? (heap[index] = right, heap[rightIndex] = last, index = rightIndex) : (heap[index] = left, heap[leftIndex] = last, index = leftIndex);
+            else if (rightIndex < length && 0 > compare3(right, last))
               heap[index] = right, heap[rightIndex] = last, index = rightIndex;
             else break a;
           }
         }
         return first;
       }
-      function compare(a, b) {
+      function compare3(a, b) {
         var diff = a.sortIndex - b.sortIndex;
         return 0 !== diff ? diff : a.id - b.id;
       }
@@ -1094,7 +2864,7 @@ var require_scheduler_development = __commonJS({
           }
       }
       function shouldYieldToHost() {
-        return needsPaint ? true : exports.unstable_now() - startTime < frameInterval ? false : true;
+        return needsPaint ? true : exports.unstable_now() - startTime2 < frameInterval ? false : true;
       }
       function requestHostTimeout(callback, ms) {
         taskTimeoutID = localSetTimeout(function() {
@@ -1114,7 +2884,7 @@ var require_scheduler_development = __commonJS({
           return localDate.now() - initialTime;
         };
       }
-      var taskQueue = [], timerQueue = [], taskIdCounter = 1, currentTask = null, currentPriorityLevel = 3, isPerformingWork = false, isHostCallbackScheduled = false, isHostTimeoutScheduled = false, needsPaint = false, localSetTimeout = "function" === typeof setTimeout ? setTimeout : null, localClearTimeout = "function" === typeof clearTimeout ? clearTimeout : null, localSetImmediate = "undefined" !== typeof setImmediate ? setImmediate : null, isMessageLoopRunning = false, taskTimeoutID = -1, frameInterval = 5, startTime = -1;
+      var taskQueue = [], timerQueue = [], taskIdCounter = 1, currentTask = null, currentPriorityLevel = 3, isPerformingWork = false, isHostCallbackScheduled = false, isHostTimeoutScheduled = false, needsPaint = false, localSetTimeout = "function" === typeof setTimeout ? setTimeout : null, localClearTimeout = "function" === typeof clearTimeout ? clearTimeout : null, localSetImmediate = "undefined" !== typeof setImmediate ? setImmediate : null, isMessageLoopRunning = false, taskTimeoutID = -1, frameInterval = 5, startTime2 = -1;
       if ("function" === typeof localSetImmediate)
         var schedulePerformWorkUntilDeadline = function() {
           localSetImmediate(performWorkUntilDeadline);
@@ -1239,6 +3009,8 @@ var require_scheduler_development = __commonJS({
 var require_scheduler = __commonJS({
   "node_modules/scheduler/index.js"(exports, module) {
     "use strict";
+    init_process();
+    init_buffer();
     if (false) {
       module.exports = null;
     } else {
@@ -1251,8 +3023,10 @@ var require_scheduler = __commonJS({
 var require_react_dom_development = __commonJS({
   "node_modules/react-dom/cjs/react-dom.development.js"(exports) {
     "use strict";
+    init_process();
+    init_buffer();
     (function() {
-      function noop() {
+      function noop2() {
       }
       function testStringCoercion(value) {
         return "" + value;
@@ -1298,19 +3072,19 @@ var require_react_dom_development = __commonJS({
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
       var React2 = require_react(), Internals = {
         d: {
-          f: noop,
+          f: noop2,
           r: function() {
             throw Error(
               "Invalid form element. requestFormReset must be passed a form that was rendered by React."
             );
           },
-          D: noop,
-          C: noop,
-          L: noop,
-          m: noop,
-          X: noop,
-          S: noop,
-          M: noop
+          D: noop2,
+          C: noop2,
+          L: noop2,
+          m: noop2,
+          X: noop2,
+          S: noop2,
+          M: noop2
         },
         p: 0,
         findDOMNode: null
@@ -1495,6 +3269,8 @@ var require_react_dom_development = __commonJS({
 var require_react_dom = __commonJS({
   "node_modules/react-dom/index.js"(exports, module) {
     "use strict";
+    init_process();
+    init_buffer();
     if (false) {
       checkDCE();
       module.exports = null;
@@ -1508,6 +3284,8 @@ var require_react_dom = __commonJS({
 var require_react_dom_client_development = __commonJS({
   "node_modules/react-dom/cjs/react-dom-client.development.js"(exports) {
     "use strict";
+    init_process();
+    init_buffer();
     (function() {
       function findHook(fiber, id) {
         for (fiber = fiber.memoizedState; null !== fiber && 0 < id; )
@@ -2631,9 +4409,9 @@ var require_react_dom_client_development = __commonJS({
               for (var i = debugInfo.length - 1; 0 <= i; i--) {
                 var entry = debugInfo[i];
                 if ("string" === typeof entry.name) {
-                  var JSCompiler_temp_const = info, env = entry.env;
+                  var JSCompiler_temp_const = info, env2 = entry.env;
                   var JSCompiler_inline_result = describeBuiltInComponentFrame(
-                    entry.name + (env ? " [" + env + "]" : "")
+                    entry.name + (env2 ? " [" + env2 + "]" : "")
                   );
                   info = JSCompiler_temp_const + JSCompiler_inline_result;
                 }
@@ -2820,7 +4598,7 @@ var require_react_dom_client_development = __commonJS({
           props.type
         ), didWarnValueDefaultValue$1 = true);
       }
-      function updateInput(element, value, defaultValue, lastDefaultValue, checked, defaultChecked, type, name) {
+      function updateInput(element, value, defaultValue, lastDefaultValue, checked2, defaultChecked, type, name) {
         element.name = "";
         null != type && "function" !== typeof type && "symbol" !== typeof type && "boolean" !== typeof type ? (checkAttributeStringCoercion(type, "type"), element.type = type) : element.removeAttribute("type");
         if (null != value)
@@ -2832,11 +4610,11 @@ var require_react_dom_client_development = __commonJS({
         else
           "submit" !== type && "reset" !== type || element.removeAttribute("value");
         null != value ? setDefaultValue(element, type, getToStringValue(value)) : null != defaultValue ? setDefaultValue(element, type, getToStringValue(defaultValue)) : null != lastDefaultValue && element.removeAttribute("value");
-        null == checked && null != defaultChecked && (element.defaultChecked = !!defaultChecked);
-        null != checked && (element.checked = checked && "function" !== typeof checked && "symbol" !== typeof checked);
+        null == checked2 && null != defaultChecked && (element.defaultChecked = !!defaultChecked);
+        null != checked2 && (element.checked = checked2 && "function" !== typeof checked2 && "symbol" !== typeof checked2);
         null != name && "function" !== typeof name && "symbol" !== typeof name && "boolean" !== typeof name ? (checkAttributeStringCoercion(name, "name"), element.name = "" + getToStringValue(name)) : element.removeAttribute("name");
       }
-      function initInput(element, value, defaultValue, checked, defaultChecked, type, name, isHydrating2) {
+      function initInput(element, value, defaultValue, checked2, defaultChecked, type, name, isHydrating2) {
         null != type && "function" !== typeof type && "symbol" !== typeof type && "boolean" !== typeof type && (checkAttributeStringCoercion(type, "type"), element.type = type);
         if (null != value || null != defaultValue) {
           if (!("submit" !== type && "reset" !== type || void 0 !== value && null !== value))
@@ -2846,10 +4624,10 @@ var require_react_dom_client_development = __commonJS({
           isHydrating2 || value === element.value || (element.value = value);
           element.defaultValue = value;
         }
-        checked = null != checked ? checked : defaultChecked;
-        checked = "function" !== typeof checked && "symbol" !== typeof checked && !!checked;
-        element.checked = isHydrating2 ? element.checked : !!checked;
-        element.defaultChecked = !!checked;
+        checked2 = null != checked2 ? checked2 : defaultChecked;
+        checked2 = "function" !== typeof checked2 && "symbol" !== typeof checked2 && !!checked2;
+        element.checked = isHydrating2 ? element.checked : !!checked2;
+        element.defaultChecked = !!checked2;
         null != name && "function" !== typeof name && "symbol" !== typeof name && "boolean" !== typeof name && (checkAttributeStringCoercion(name, "name"), element.name = name);
       }
       function setDefaultValue(node, type, value) {
@@ -4181,23 +5959,23 @@ var require_react_dom_client_development = __commonJS({
         for (var endIndex = concurrentQueuesIndex, i = concurrentlyUpdatedLanes = concurrentQueuesIndex = 0; i < endIndex; ) {
           var fiber = concurrentQueues[i];
           concurrentQueues[i++] = null;
-          var queue = concurrentQueues[i];
+          var queue2 = concurrentQueues[i];
           concurrentQueues[i++] = null;
           var update = concurrentQueues[i];
           concurrentQueues[i++] = null;
           var lane = concurrentQueues[i];
           concurrentQueues[i++] = null;
-          if (null !== queue && null !== update) {
-            var pending = queue.pending;
+          if (null !== queue2 && null !== update) {
+            var pending = queue2.pending;
             null === pending ? update.next = update : (update.next = pending.next, pending.next = update);
-            queue.pending = update;
+            queue2.pending = update;
           }
           0 !== lane && markUpdateLaneFromFiberToRoot(fiber, update, lane);
         }
       }
-      function enqueueUpdate$1(fiber, queue, update, lane) {
+      function enqueueUpdate$1(fiber, queue2, update, lane) {
         concurrentQueues[concurrentQueuesIndex++] = fiber;
-        concurrentQueues[concurrentQueuesIndex++] = queue;
+        concurrentQueues[concurrentQueuesIndex++] = queue2;
         concurrentQueues[concurrentQueuesIndex++] = update;
         concurrentQueues[concurrentQueuesIndex++] = lane;
         concurrentlyUpdatedLanes |= lane;
@@ -4205,8 +5983,8 @@ var require_react_dom_client_development = __commonJS({
         fiber = fiber.alternate;
         null !== fiber && (fiber.lanes |= lane);
       }
-      function enqueueConcurrentHookUpdate(fiber, queue, update, lane) {
-        enqueueUpdate$1(fiber, queue, update, lane);
+      function enqueueConcurrentHookUpdate(fiber, queue2, update, lane) {
+        enqueueUpdate$1(fiber, queue2, update, lane);
         return getRootForUpdatedFiber(fiber);
       }
       function enqueueConcurrentRenderForLane(fiber, lane) {
@@ -5161,37 +6939,37 @@ var require_react_dom_client_development = __commonJS({
         }
       }
       function enqueueCapturedUpdate(workInProgress2, capturedUpdate) {
-        var queue = workInProgress2.updateQueue, current2 = workInProgress2.alternate;
-        if (null !== current2 && (current2 = current2.updateQueue, queue === current2)) {
+        var queue2 = workInProgress2.updateQueue, current2 = workInProgress2.alternate;
+        if (null !== current2 && (current2 = current2.updateQueue, queue2 === current2)) {
           var newFirst = null, newLast = null;
-          queue = queue.firstBaseUpdate;
-          if (null !== queue) {
+          queue2 = queue2.firstBaseUpdate;
+          if (null !== queue2) {
             do {
               var clone = {
-                lane: queue.lane,
-                tag: queue.tag,
-                payload: queue.payload,
+                lane: queue2.lane,
+                tag: queue2.tag,
+                payload: queue2.payload,
                 callback: null,
                 next: null
               };
               null === newLast ? newFirst = newLast = clone : newLast = newLast.next = clone;
-              queue = queue.next;
-            } while (null !== queue);
+              queue2 = queue2.next;
+            } while (null !== queue2);
             null === newLast ? newFirst = newLast = capturedUpdate : newLast = newLast.next = capturedUpdate;
           } else newFirst = newLast = capturedUpdate;
-          queue = {
+          queue2 = {
             baseState: current2.baseState,
             firstBaseUpdate: newFirst,
             lastBaseUpdate: newLast,
             shared: current2.shared,
             callbacks: current2.callbacks
           };
-          workInProgress2.updateQueue = queue;
+          workInProgress2.updateQueue = queue2;
           return;
         }
-        workInProgress2 = queue.lastBaseUpdate;
-        null === workInProgress2 ? queue.firstBaseUpdate = capturedUpdate : workInProgress2.next = capturedUpdate;
-        queue.lastBaseUpdate = capturedUpdate;
+        workInProgress2 = queue2.lastBaseUpdate;
+        null === workInProgress2 ? queue2.firstBaseUpdate = capturedUpdate : workInProgress2.next = capturedUpdate;
+        queue2.lastBaseUpdate = capturedUpdate;
       }
       function suspendIfUpdateReadFromEntangledAsyncAction() {
         if (didReadFromEntangledAsyncAction) {
@@ -5201,12 +6979,12 @@ var require_react_dom_client_development = __commonJS({
       }
       function processUpdateQueue(workInProgress2, props, instance$jscomp$0, renderLanes2) {
         didReadFromEntangledAsyncAction = false;
-        var queue = workInProgress2.updateQueue;
+        var queue2 = workInProgress2.updateQueue;
         hasForceUpdate = false;
-        currentlyProcessingQueue = queue.shared;
-        var firstBaseUpdate = queue.firstBaseUpdate, lastBaseUpdate = queue.lastBaseUpdate, pendingQueue = queue.shared.pending;
+        currentlyProcessingQueue = queue2.shared;
+        var firstBaseUpdate = queue2.firstBaseUpdate, lastBaseUpdate = queue2.lastBaseUpdate, pendingQueue = queue2.shared.pending;
         if (null !== pendingQueue) {
-          queue.shared.pending = null;
+          queue2.shared.pending = null;
           var lastPendingUpdate = pendingQueue, firstPendingUpdate = lastPendingUpdate.next;
           lastPendingUpdate.next = null;
           null === lastBaseUpdate ? firstBaseUpdate = firstPendingUpdate : lastBaseUpdate.next = firstPendingUpdate;
@@ -5215,7 +6993,7 @@ var require_react_dom_client_development = __commonJS({
           null !== current2 && (current2 = current2.updateQueue, pendingQueue = current2.lastBaseUpdate, pendingQueue !== lastBaseUpdate && (null === pendingQueue ? current2.firstBaseUpdate = firstPendingUpdate : pendingQueue.next = firstPendingUpdate, current2.lastBaseUpdate = lastPendingUpdate));
         }
         if (null !== firstBaseUpdate) {
-          var newState = queue.baseState;
+          var newState = queue2.baseState;
           lastBaseUpdate = 0;
           current2 = firstPendingUpdate = lastPendingUpdate = null;
           pendingQueue = firstBaseUpdate;
@@ -5287,7 +7065,7 @@ var require_react_dom_client_development = __commonJS({
                 }
               }
               updateLane = pendingQueue.callback;
-              null !== updateLane && (workInProgress2.flags |= 64, isHiddenUpdate && (workInProgress2.flags |= 8192), isHiddenUpdate = queue.callbacks, null === isHiddenUpdate ? queue.callbacks = [updateLane] : isHiddenUpdate.push(updateLane));
+              null !== updateLane && (workInProgress2.flags |= 64, isHiddenUpdate && (workInProgress2.flags |= 8192), isHiddenUpdate = queue2.callbacks, null === isHiddenUpdate ? queue2.callbacks = [updateLane] : isHiddenUpdate.push(updateLane));
             } else
               isHiddenUpdate = {
                 lane: updateLane,
@@ -5298,16 +7076,16 @@ var require_react_dom_client_development = __commonJS({
               }, null === current2 ? (firstPendingUpdate = current2 = isHiddenUpdate, lastPendingUpdate = newState) : current2 = current2.next = isHiddenUpdate, lastBaseUpdate |= updateLane;
             pendingQueue = pendingQueue.next;
             if (null === pendingQueue)
-              if (pendingQueue = queue.shared.pending, null === pendingQueue)
+              if (pendingQueue = queue2.shared.pending, null === pendingQueue)
                 break;
               else
-                isHiddenUpdate = pendingQueue, pendingQueue = isHiddenUpdate.next, isHiddenUpdate.next = null, queue.lastBaseUpdate = isHiddenUpdate, queue.shared.pending = null;
+                isHiddenUpdate = pendingQueue, pendingQueue = isHiddenUpdate.next, isHiddenUpdate.next = null, queue2.lastBaseUpdate = isHiddenUpdate, queue2.shared.pending = null;
           } while (1);
           null === current2 && (lastPendingUpdate = newState);
-          queue.baseState = lastPendingUpdate;
-          queue.firstBaseUpdate = firstPendingUpdate;
-          queue.lastBaseUpdate = current2;
-          null === firstBaseUpdate && (queue.shared.lanes = 0);
+          queue2.baseState = lastPendingUpdate;
+          queue2.firstBaseUpdate = firstPendingUpdate;
+          queue2.lastBaseUpdate = current2;
+          null === firstBaseUpdate && (queue2.shared.lanes = 0);
           workInProgressRootSkippedLanes |= lastBaseUpdate;
           workInProgress2.lanes = lastBaseUpdate;
           workInProgress2.memoizedState = newState;
@@ -5527,8 +7305,8 @@ var require_react_dom_client_development = __commonJS({
       function resetHooksOnUnwind(workInProgress2) {
         if (didScheduleRenderPhaseUpdate) {
           for (workInProgress2 = workInProgress2.memoizedState; null !== workInProgress2; ) {
-            var queue = workInProgress2.queue;
-            null !== queue && (queue.pending = null);
+            var queue2 = workInProgress2.queue;
+            null !== queue2 && (queue2.pending = null);
             workInProgress2 = workInProgress2.next;
           }
           didScheduleRenderPhaseUpdate = false;
@@ -5630,14 +7408,14 @@ var require_react_dom_client_development = __commonJS({
       function basicStateReducer(state, action) {
         return "function" === typeof action ? action(state) : action;
       }
-      function mountReducer(reducer, initialArg, init) {
+      function mountReducer(reducer, initialArg, init2) {
         var hook = mountWorkInProgressHook();
-        if (void 0 !== init) {
-          var initialState = init(initialArg);
+        if (void 0 !== init2) {
+          var initialState = init2(initialArg);
           if (shouldDoubleInvokeUserFnsInHooksDEV) {
             setIsStrictModeForDevtools(true);
             try {
-              init(initialArg);
+              init2(initialArg);
             } finally {
               setIsStrictModeForDevtools(false);
             }
@@ -5664,13 +7442,13 @@ var require_react_dom_client_development = __commonJS({
         return updateReducerImpl(hook, currentHook, reducer);
       }
       function updateReducerImpl(hook, current2, reducer) {
-        var queue = hook.queue;
-        if (null === queue)
+        var queue2 = hook.queue;
+        if (null === queue2)
           throw Error(
             "Should have a queue. You are likely calling Hooks conditionally, which is not allowed. (https://react.dev/link/invalid-hook-call)"
           );
-        queue.lastRenderedReducer = reducer;
-        var baseQueue = hook.baseQueue, pendingQueue = queue.pending;
+        queue2.lastRenderedReducer = reducer;
+        var baseQueue = hook.baseQueue, pendingQueue = queue2.pending;
         if (null !== pendingQueue) {
           if (null !== baseQueue) {
             var baseFirst = baseQueue.next;
@@ -5681,7 +7459,7 @@ var require_react_dom_client_development = __commonJS({
             "Internal error: Expected work-in-progress queue to be a clone. This is a bug in React."
           );
           current2.baseQueue = baseQueue = pendingQueue;
-          queue.pending = null;
+          queue2.pending = null;
         }
         pendingQueue = hook.baseState;
         if (null === baseQueue) hook.memoizedState = pendingQueue;
@@ -5734,21 +7512,21 @@ var require_react_dom_client_development = __commonJS({
           hook.memoizedState = pendingQueue;
           hook.baseState = baseFirst;
           hook.baseQueue = newBaseQueueLast;
-          queue.lastRenderedState = pendingQueue;
+          queue2.lastRenderedState = pendingQueue;
         }
-        null === baseQueue && (queue.lanes = 0);
-        return [hook.memoizedState, queue.dispatch];
+        null === baseQueue && (queue2.lanes = 0);
+        return [hook.memoizedState, queue2.dispatch];
       }
       function rerenderReducer(reducer) {
-        var hook = updateWorkInProgressHook(), queue = hook.queue;
-        if (null === queue)
+        var hook = updateWorkInProgressHook(), queue2 = hook.queue;
+        if (null === queue2)
           throw Error(
             "Should have a queue. You are likely calling Hooks conditionally, which is not allowed. (https://react.dev/link/invalid-hook-call)"
           );
-        queue.lastRenderedReducer = reducer;
-        var dispatch = queue.dispatch, lastRenderPhaseUpdate = queue.pending, newState = hook.memoizedState;
+        queue2.lastRenderedReducer = reducer;
+        var dispatch = queue2.dispatch, lastRenderPhaseUpdate = queue2.pending, newState = hook.memoizedState;
         if (null !== lastRenderPhaseUpdate) {
-          queue.pending = null;
+          queue2.pending = null;
           var update = lastRenderPhaseUpdate = lastRenderPhaseUpdate.next;
           do
             newState = reducer(newState, update.action), update = update.next;
@@ -5756,7 +7534,7 @@ var require_react_dom_client_development = __commonJS({
           objectIs(newState, hook.memoizedState) || (didReceiveUpdate = true);
           hook.memoizedState = newState;
           null === hook.baseQueue && (hook.baseState = newState);
-          queue.lastRenderedState = newState;
+          queue2.lastRenderedState = newState;
         }
         return [newState, dispatch];
       }
@@ -5904,28 +7682,28 @@ var require_react_dom_client_development = __commonJS({
       }
       function mountState(initialState) {
         initialState = mountStateImpl(initialState);
-        var queue = initialState.queue, dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
-        queue.dispatch = dispatch;
+        var queue2 = initialState.queue, dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue2);
+        queue2.dispatch = dispatch;
         return [initialState.memoizedState, dispatch];
       }
       function mountOptimistic(passthrough) {
         var hook = mountWorkInProgressHook();
         hook.memoizedState = hook.baseState = passthrough;
-        var queue = {
+        var queue2 = {
           pending: null,
           lanes: 0,
           dispatch: null,
           lastRenderedReducer: null,
           lastRenderedState: null
         };
-        hook.queue = queue;
+        hook.queue = queue2;
         hook = dispatchOptimisticSetState.bind(
           null,
           currentlyRenderingFiber,
           true,
-          queue
+          queue2
         );
-        queue.dispatch = hook;
+        queue2.dispatch = hook;
         return [passthrough, hook];
       }
       function updateOptimistic(passthrough, reducer) {
@@ -6346,12 +8124,12 @@ var require_react_dom_client_development = __commonJS({
         workInProgressRootSkippedLanes |= hook;
         return prevValue;
       }
-      function startTransition(fiber, queue, pendingState, finishedState, callback) {
+      function startTransition(fiber, queue2, pendingState, finishedState, callback) {
         var previousPriority = ReactDOMSharedInternals.p;
         ReactDOMSharedInternals.p = 0 !== previousPriority && previousPriority < ContinuousEventPriority ? previousPriority : ContinuousEventPriority;
         var prevTransition = ReactSharedInternals.T, currentTransition = {};
         ReactSharedInternals.T = currentTransition;
-        dispatchOptimisticSetState(fiber, false, queue, pendingState);
+        dispatchOptimisticSetState(fiber, false, queue2, pendingState);
         currentTransition._updatedFibers = /* @__PURE__ */ new Set();
         try {
           var returnValue = callback(), onStartTransitionFinish = ReactSharedInternals.S;
@@ -6363,21 +8141,21 @@ var require_react_dom_client_development = __commonJS({
             );
             dispatchSetStateInternal(
               fiber,
-              queue,
+              queue2,
               thenableForFinishedState,
               requestUpdateLane(fiber)
             );
           } else
             dispatchSetStateInternal(
               fiber,
-              queue,
+              queue2,
               finishedState,
               requestUpdateLane(fiber)
             );
         } catch (error) {
           dispatchSetStateInternal(
             fiber,
-            queue,
+            queue2,
             { then: function() {
             }, status: "rejected", reason: error },
             requestUpdateLane(fiber)
@@ -6393,10 +8171,10 @@ var require_react_dom_client_development = __commonJS({
           throw Error(
             "Expected the form instance to be a HostComponent. This is a bug in React."
           );
-        var queue = ensureFormComponentIsStateful(formFiber).queue;
+        var queue2 = ensureFormComponentIsStateful(formFiber).queue;
         startTransition(
           formFiber,
-          queue,
+          queue2,
           pendingState,
           NotPendingTransition,
           null === action ? noop$2 : function() {
@@ -6520,7 +8298,7 @@ var require_react_dom_client_development = __commonJS({
           provider = provider.return;
         }
       }
-      function dispatchReducerAction(fiber, queue, action) {
+      function dispatchReducerAction(fiber, queue2, action) {
         var args = arguments;
         "function" === typeof args[3] && console.error(
           "State updates from the useState() and useReducer() Hooks don't support the second callback argument. To execute a side effect after rendering, declare it in the component body with useEffect()."
@@ -6534,19 +8312,19 @@ var require_react_dom_client_development = __commonJS({
           eagerState: null,
           next: null
         };
-        isRenderPhaseUpdate(fiber) ? enqueueRenderPhaseUpdate(queue, update) : (update = enqueueConcurrentHookUpdate(fiber, queue, update, args), null !== update && (scheduleUpdateOnFiber(update, fiber, args), entangleTransitionUpdate(update, queue, args)));
+        isRenderPhaseUpdate(fiber) ? enqueueRenderPhaseUpdate(queue2, update) : (update = enqueueConcurrentHookUpdate(fiber, queue2, update, args), null !== update && (scheduleUpdateOnFiber(update, fiber, args), entangleTransitionUpdate(update, queue2, args)));
         markStateUpdateScheduled(fiber, args);
       }
-      function dispatchSetState(fiber, queue, action) {
+      function dispatchSetState(fiber, queue2, action) {
         var args = arguments;
         "function" === typeof args[3] && console.error(
           "State updates from the useState() and useReducer() Hooks don't support the second callback argument. To execute a side effect after rendering, declare it in the component body with useEffect()."
         );
         args = requestUpdateLane(fiber);
-        dispatchSetStateInternal(fiber, queue, action, args);
+        dispatchSetStateInternal(fiber, queue2, action, args);
         markStateUpdateScheduled(fiber, args);
       }
-      function dispatchSetStateInternal(fiber, queue, action, lane) {
+      function dispatchSetStateInternal(fiber, queue2, action, lane) {
         var update = {
           lane,
           revertLane: 0,
@@ -6555,30 +8333,30 @@ var require_react_dom_client_development = __commonJS({
           eagerState: null,
           next: null
         };
-        if (isRenderPhaseUpdate(fiber)) enqueueRenderPhaseUpdate(queue, update);
+        if (isRenderPhaseUpdate(fiber)) enqueueRenderPhaseUpdate(queue2, update);
         else {
           var alternate = fiber.alternate;
-          if (0 === fiber.lanes && (null === alternate || 0 === alternate.lanes) && (alternate = queue.lastRenderedReducer, null !== alternate)) {
+          if (0 === fiber.lanes && (null === alternate || 0 === alternate.lanes) && (alternate = queue2.lastRenderedReducer, null !== alternate)) {
             var prevDispatcher = ReactSharedInternals.H;
             ReactSharedInternals.H = InvalidNestedHooksDispatcherOnUpdateInDEV;
             try {
-              var currentState = queue.lastRenderedState, eagerState = alternate(currentState, action);
+              var currentState = queue2.lastRenderedState, eagerState = alternate(currentState, action);
               update.hasEagerState = true;
               update.eagerState = eagerState;
               if (objectIs(eagerState, currentState))
-                return enqueueUpdate$1(fiber, queue, update, 0), null === workInProgressRoot && finishQueueingConcurrentUpdates(), false;
+                return enqueueUpdate$1(fiber, queue2, update, 0), null === workInProgressRoot && finishQueueingConcurrentUpdates(), false;
             } catch (error) {
             } finally {
               ReactSharedInternals.H = prevDispatcher;
             }
           }
-          action = enqueueConcurrentHookUpdate(fiber, queue, update, lane);
+          action = enqueueConcurrentHookUpdate(fiber, queue2, update, lane);
           if (null !== action)
-            return scheduleUpdateOnFiber(action, fiber, lane), entangleTransitionUpdate(action, queue, lane), true;
+            return scheduleUpdateOnFiber(action, fiber, lane), entangleTransitionUpdate(action, queue2, lane), true;
         }
         return false;
       }
-      function dispatchOptimisticSetState(fiber, throwIfDuringRender, queue, action) {
+      function dispatchOptimisticSetState(fiber, throwIfDuringRender, queue2, action) {
         null === ReactSharedInternals.T && 0 === currentEntangledLane && console.error(
           "An optimistic state update occurred outside a transition or action. To fix, move the update to an action, or wrap with startTransition."
         );
@@ -6597,7 +8375,7 @@ var require_react_dom_client_development = __commonJS({
         } else
           throwIfDuringRender = enqueueConcurrentHookUpdate(
             fiber,
-            queue,
+            queue2,
             action,
             2
           ), null !== throwIfDuringRender && scheduleUpdateOnFiber(throwIfDuringRender, fiber, 2);
@@ -6607,18 +8385,18 @@ var require_react_dom_client_development = __commonJS({
         var alternate = fiber.alternate;
         return fiber === currentlyRenderingFiber || null !== alternate && alternate === currentlyRenderingFiber;
       }
-      function enqueueRenderPhaseUpdate(queue, update) {
+      function enqueueRenderPhaseUpdate(queue2, update) {
         didScheduleRenderPhaseUpdateDuringThisPass = didScheduleRenderPhaseUpdate = true;
-        var pending = queue.pending;
+        var pending = queue2.pending;
         null === pending ? update.next = update : (update.next = pending.next, pending.next = update);
-        queue.pending = update;
+        queue2.pending = update;
       }
-      function entangleTransitionUpdate(root3, queue, lane) {
+      function entangleTransitionUpdate(root3, queue2, lane) {
         if (0 !== (lane & 4194048)) {
-          var queueLanes = queue.lanes;
+          var queueLanes = queue2.lanes;
           queueLanes &= root3.pendingLanes;
           lane |= queueLanes;
-          queue.lanes = lane;
+          queue2.lanes = lane;
           markRootEntangled(root3, lane);
         }
       }
@@ -11706,7 +13484,7 @@ var require_react_dom_client_development = __commonJS({
         root3.timeoutHandle = noTimeout;
         suspendedCommitReason = finishedWork.subtreeFlags;
         if (suspendedCommitReason & 8192 || 16785408 === (suspendedCommitReason & 16785408)) {
-          if (suspendedState = { stylesheets: null, count: 0, unsuspend: noop }, accumulateSuspenseyCommitOnFiber(finishedWork), suspendedCommitReason = waitForCommitToBeReady(), null !== suspendedCommitReason) {
+          if (suspendedState = { stylesheets: null, count: 0, unsuspend: noop2 }, accumulateSuspenseyCommitOnFiber(finishedWork), suspendedCommitReason = waitForCommitToBeReady(), null !== suspendedCommitReason) {
             root3.cancelPendingCommit = suspendedCommitReason(
               commitRoot.bind(
                 null,
@@ -13930,7 +15708,7 @@ var require_react_dom_client_development = __commonJS({
           case "input":
             checkControlledValueProps("input", props);
             listenToNonDelegatedEvent("invalid", domElement);
-            var defaultValue = propKey = propValue = hasSrcSet = null, checked = null, defaultChecked = null;
+            var defaultValue = propKey = propValue = hasSrcSet = null, checked2 = null, defaultChecked = null;
             for (hasSrc in props)
               if (props.hasOwnProperty(hasSrc)) {
                 var _propValue = props[hasSrc];
@@ -13943,7 +15721,7 @@ var require_react_dom_client_development = __commonJS({
                       propValue = _propValue;
                       break;
                     case "checked":
-                      checked = _propValue;
+                      checked2 = _propValue;
                       break;
                     case "defaultChecked":
                       defaultChecked = _propValue;
@@ -13970,7 +15748,7 @@ var require_react_dom_client_development = __commonJS({
               domElement,
               propKey,
               defaultValue,
-              checked,
+              checked2,
               defaultChecked,
               propValue,
               hasSrcSet,
@@ -14047,14 +15825,14 @@ var require_react_dom_client_development = __commonJS({
             return;
           case "option":
             validateOptionProps(domElement, props);
-            for (checked in props)
-              if (props.hasOwnProperty(checked) && (hasSrc = props[checked], null != hasSrc))
-                switch (checked) {
+            for (checked2 in props)
+              if (props.hasOwnProperty(checked2) && (hasSrc = props[checked2], null != hasSrc))
+                switch (checked2) {
                   case "selected":
                     domElement.selected = hasSrc && "function" !== typeof hasSrc && "symbol" !== typeof hasSrc;
                     break;
                   default:
-                    setProp(domElement, tag, checked, hasSrc, props, null);
+                    setProp(domElement, tag, checked2, hasSrc, props, null);
                 }
             return;
           case "dialog":
@@ -14136,7 +15914,7 @@ var require_react_dom_client_development = __commonJS({
           case "li":
             break;
           case "input":
-            var name = null, type = null, value = null, defaultValue = null, lastDefaultValue = null, checked = null, defaultChecked = null;
+            var name = null, type = null, value = null, defaultValue = null, lastDefaultValue = null, checked2 = null, defaultChecked = null;
             for (propKey in lastProps) {
               var lastProp = lastProps[propKey];
               if (lastProps.hasOwnProperty(propKey) && null != lastProp)
@@ -14170,7 +15948,7 @@ var require_react_dom_client_development = __commonJS({
                     name = propKey;
                     break;
                   case "checked":
-                    checked = propKey;
+                    checked2 = propKey;
                     break;
                   case "defaultChecked":
                     defaultChecked = propKey;
@@ -14212,7 +15990,7 @@ var require_react_dom_client_development = __commonJS({
               value,
               defaultValue,
               lastDefaultValue,
-              checked,
+              checked2,
               defaultChecked,
               type,
               name
@@ -14355,9 +16133,9 @@ var require_react_dom_client_development = __commonJS({
                 nextProps,
                 _propKey8
               );
-            for (checked in nextProps)
-              if (_propKey8 = nextProps[checked], propKey = lastProps[checked], nextProps.hasOwnProperty(checked) && _propKey8 !== propKey && (null != _propKey8 || null != propKey))
-                switch (checked) {
+            for (checked2 in nextProps)
+              if (_propKey8 = nextProps[checked2], propKey = lastProps[checked2], nextProps.hasOwnProperty(checked2) && _propKey8 !== propKey && (null != _propKey8 || null != propKey))
+                switch (checked2) {
                   case "children":
                   case "dangerouslySetInnerHTML":
                     if (null != _propKey8)
@@ -14369,7 +16147,7 @@ var require_react_dom_client_development = __commonJS({
                     setProp(
                       domElement,
                       tag,
-                      checked,
+                      checked2,
                       _propKey8,
                       nextProps,
                       propKey
@@ -15768,7 +17546,7 @@ var require_react_dom_client_development = __commonJS({
       function preloadResource(resource) {
         return "stylesheet" === resource.type && (resource.state.loading & Settled) === NotLoaded ? false : true;
       }
-      function noop() {
+      function noop2() {
       }
       function suspendResource(hoistableRoot, resource, props) {
         if (null === suspendedState)
@@ -17740,13 +19518,13 @@ var require_react_dom_client_development = __commonJS({
             ReactSharedInternals.H = prevDispatcher;
           }
         },
-        useReducer: function(reducer, initialArg, init) {
+        useReducer: function(reducer, initialArg, init2) {
           currentHookNameInDev = "useReducer";
           mountHookTypesDev();
           var prevDispatcher = ReactSharedInternals.H;
           ReactSharedInternals.H = InvalidNestedHooksDispatcherOnMountInDEV;
           try {
-            return mountReducer(reducer, initialArg, init);
+            return mountReducer(reducer, initialArg, init2);
           } finally {
             ReactSharedInternals.H = prevDispatcher;
           }
@@ -17865,13 +19643,13 @@ var require_react_dom_client_development = __commonJS({
             ReactSharedInternals.H = prevDispatcher;
           }
         },
-        useReducer: function(reducer, initialArg, init) {
+        useReducer: function(reducer, initialArg, init2) {
           currentHookNameInDev = "useReducer";
           updateHookTypesDev();
           var prevDispatcher = ReactSharedInternals.H;
           ReactSharedInternals.H = InvalidNestedHooksDispatcherOnMountInDEV;
           try {
-            return mountReducer(reducer, initialArg, init);
+            return mountReducer(reducer, initialArg, init2);
           } finally {
             ReactSharedInternals.H = prevDispatcher;
           }
@@ -17990,13 +19768,13 @@ var require_react_dom_client_development = __commonJS({
             ReactSharedInternals.H = prevDispatcher;
           }
         },
-        useReducer: function(reducer, initialArg, init) {
+        useReducer: function(reducer, initialArg, init2) {
           currentHookNameInDev = "useReducer";
           updateHookTypesDev();
           var prevDispatcher = ReactSharedInternals.H;
           ReactSharedInternals.H = InvalidNestedHooksDispatcherOnUpdateInDEV;
           try {
-            return updateReducer(reducer, initialArg, init);
+            return updateReducer(reducer, initialArg, init2);
           } finally {
             ReactSharedInternals.H = prevDispatcher;
           }
@@ -18115,13 +19893,13 @@ var require_react_dom_client_development = __commonJS({
             ReactSharedInternals.H = prevDispatcher;
           }
         },
-        useReducer: function(reducer, initialArg, init) {
+        useReducer: function(reducer, initialArg, init2) {
           currentHookNameInDev = "useReducer";
           updateHookTypesDev();
           var prevDispatcher = ReactSharedInternals.H;
           ReactSharedInternals.H = InvalidNestedHooksDispatcherOnRerenderInDEV;
           try {
-            return rerenderReducer(reducer, initialArg, init);
+            return rerenderReducer(reducer, initialArg, init2);
           } finally {
             ReactSharedInternals.H = prevDispatcher;
           }
@@ -18251,14 +20029,14 @@ var require_react_dom_client_development = __commonJS({
             ReactSharedInternals.H = prevDispatcher;
           }
         },
-        useReducer: function(reducer, initialArg, init) {
+        useReducer: function(reducer, initialArg, init2) {
           currentHookNameInDev = "useReducer";
           warnInvalidHookAccess();
           mountHookTypesDev();
           var prevDispatcher = ReactSharedInternals.H;
           ReactSharedInternals.H = InvalidNestedHooksDispatcherOnMountInDEV;
           try {
-            return mountReducer(reducer, initialArg, init);
+            return mountReducer(reducer, initialArg, init2);
           } finally {
             ReactSharedInternals.H = prevDispatcher;
           }
@@ -18400,14 +20178,14 @@ var require_react_dom_client_development = __commonJS({
             ReactSharedInternals.H = prevDispatcher;
           }
         },
-        useReducer: function(reducer, initialArg, init) {
+        useReducer: function(reducer, initialArg, init2) {
           currentHookNameInDev = "useReducer";
           warnInvalidHookAccess();
           updateHookTypesDev();
           var prevDispatcher = ReactSharedInternals.H;
           ReactSharedInternals.H = InvalidNestedHooksDispatcherOnUpdateInDEV;
           try {
-            return updateReducer(reducer, initialArg, init);
+            return updateReducer(reducer, initialArg, init2);
           } finally {
             ReactSharedInternals.H = prevDispatcher;
           }
@@ -18549,14 +20327,14 @@ var require_react_dom_client_development = __commonJS({
             ReactSharedInternals.H = prevDispatcher;
           }
         },
-        useReducer: function(reducer, initialArg, init) {
+        useReducer: function(reducer, initialArg, init2) {
           currentHookNameInDev = "useReducer";
           warnInvalidHookAccess();
           updateHookTypesDev();
           var prevDispatcher = ReactSharedInternals.H;
           ReactSharedInternals.H = InvalidNestedHooksDispatcherOnUpdateInDEV;
           try {
-            return rerenderReducer(reducer, initialArg, init);
+            return rerenderReducer(reducer, initialArg, init2);
           } finally {
             ReactSharedInternals.H = prevDispatcher;
           }
@@ -18713,8 +20491,8 @@ var require_react_dom_client_development = __commonJS({
         }
       }, callDestroyInDEV = callDestroy["react-stack-bottom-frame"].bind(callDestroy), callLazyInit = {
         "react-stack-bottom-frame": function(lazy) {
-          var init = lazy._init;
-          return init(lazy._payload);
+          var init2 = lazy._init;
+          return init2(lazy._payload);
         }
       }, callLazyInitInDEV = callLazyInit["react-stack-bottom-frame"].bind(callLazyInit), thenableState = null, thenableIndexCounter = 0, currentDebugInfo = null, didWarnAboutMaps;
       var didWarnAboutGenerators = didWarnAboutMaps = false;
@@ -19183,7 +20961,7 @@ var require_react_dom_client_development = __commonJS({
         componentOrElement = null === componentOrElement ? null : componentOrElement.stateNode;
         return componentOrElement;
       };
-      if (!function() {
+      if (!(function() {
         var internals = {
           bundleType: 1,
           version: "19.1.0",
@@ -19207,7 +20985,7 @@ var require_react_dom_client_development = __commonJS({
         internals.getLaneLabelMap = getLaneLabelMap;
         internals.injectProfilingHooks = injectProfilingHooks;
         return injectInternals(internals);
-      }() && canUseDOM && window.top === window.self && (-1 < navigator.userAgent.indexOf("Chrome") && -1 === navigator.userAgent.indexOf("Edge") || -1 < navigator.userAgent.indexOf("Firefox"))) {
+      })() && canUseDOM && window.top === window.self && (-1 < navigator.userAgent.indexOf("Chrome") && -1 === navigator.userAgent.indexOf("Edge") || -1 < navigator.userAgent.indexOf("Firefox"))) {
         var protocol = window.location.protocol;
         /^(https?|file):$/.test(protocol) && console.info(
           "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools" + ("file:" === protocol ? "\nYou might need to use a local HTTP server (instead of file://): https://react.dev/link/react-devtools-faq" : ""),
@@ -19290,6 +21068,8 @@ var require_react_dom_client_development = __commonJS({
 var require_client = __commonJS({
   "node_modules/react-dom/client.js"(exports, module) {
     "use strict";
+    init_process();
+    init_buffer();
     if (false) {
       checkDCE();
       module.exports = null;
@@ -19300,6 +21080,8 @@ var require_client = __commonJS({
 });
 
 // extension/ui/panel.tsx
+init_process();
+init_buffer();
 var import_react = __toESM(require_react());
 var import_client = __toESM(require_client());
 var API_BASE = "http://localhost:3000";
@@ -19419,11 +21201,19 @@ function App() {
       }
     },
     t[0].toUpperCase() + t.slice(1)
-  ))), active === "send" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Recipient", value: to, onChange: (e) => setTo(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: amount, onChange: (e) => setAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: sendPayment, disabled: busy }, "Send")), active === "request" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: requestAmount, onChange: (e) => setRequestAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Note (optional)", value: requestNote, onChange: (e) => setRequestNote(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: createRequest, disabled: busy }, "Create request link")), active === "invest" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Title", value: invTitle, onChange: (e) => setInvTitle(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Goal amount", value: invGoal, onChange: (e) => setInvGoal(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("textarea", { placeholder: "Description", value: invDesc, onChange: (e) => setInvDesc(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: createInvestment, disabled: busy }, "Create investment")), active === "fund" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Investment ID", value: fundId, onChange: (e) => setFundId(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: fundAmount, onChange: (e) => setFundAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: fundInvestment, disabled: busy }, "Fund")));
+  ))), active === "send" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Recipient", value: to, onChange: (e) => setTo(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: amount, onChange: (e) => setAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: sendPayment, disabled: busy }, "Send"), /* @__PURE__ */ import_react.default.createElement("div", { style: { marginTop: 8, textAlign: "center", color: "#6b7280", fontSize: 12 } }, "For Nexus cross-chain transfer, use", " ", /* @__PURE__ */ import_react.default.createElement("a", { href: `${API_BASE}/nexus-panel`, target: "_blank", rel: "noopener noreferrer", style: { color: "#2563eb" } }, "this page"))), active === "request" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: requestAmount, onChange: (e) => setRequestAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Note (optional)", value: requestNote, onChange: (e) => setRequestNote(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: createRequest, disabled: busy }, "Create request link")), active === "invest" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Title", value: invTitle, onChange: (e) => setInvTitle(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Goal amount", value: invGoal, onChange: (e) => setInvGoal(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("textarea", { placeholder: "Description", value: invDesc, onChange: (e) => setInvDesc(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: createInvestment, disabled: busy }, "Create investment")), active === "fund" && /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "grid", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Investment ID", value: fundId, onChange: (e) => setFundId(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "Amount", value: fundAmount, onChange: (e) => setFundAmount(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { onClick: fundInvestment, disabled: busy }, "Fund")));
 }
 var root = (0, import_client.createRoot)(document.getElementById("root"));
 root.render(/* @__PURE__ */ import_react.default.createElement(App, null));
 /*! Bundled license information:
+
+@esbuild-plugins/node-globals-polyfill/Buffer.js:
+  (*!
+   * The buffer module from node.js, for the browser.
+   *
+   * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+   * @license  MIT
+   *)
 
 react/cjs/react.development.js:
   (**

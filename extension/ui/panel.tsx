@@ -146,6 +146,12 @@ function App() {
           <input placeholder="Recipient" value={to} onChange={(e) => setTo(e.target.value)} />
           <input placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
           <button onClick={sendPayment} disabled={busy}>Send</button>
+          <div style={{ marginTop: 8, textAlign: "center", color: "#6b7280", fontSize: 12 }}>
+            For Nexus cross-chain transfer, use{" "}
+            <a href={`${API_BASE}/nexus-panel`} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>
+              this page
+            </a>
+          </div>
         </div>
       )}
 

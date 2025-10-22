@@ -62,6 +62,26 @@ Watch and rebuild on changes:
 npm run watch:ext
 ```
 
+### Nexus Cross-Chain Features
+
+The extension integrates with Avail Nexus for cross-chain payments. Visit http://localhost:3000/nexus-panel to access:
+
+- **Transfer**: Send tokens cross-chain
+- **Bridge**: Bridge tokens between chains
+- **Wallet Support**: MetaMask, WalletConnect, and other Web3 wallets via ConnectKit
+
+**Key Components:**
+- `src/app/providers.tsx` - Wagmi + ConnectKit + Nexus SDK setup
+- `src/app/components/wallet-bridge.tsx` - Automatic SDK initialization
+- `src/app/components/nexus-bridge.tsx` - Transfer and Bridge UI
+- `src/app/nexus-panel/page.tsx` - Nexus panel page
+
+**Stack:**
+- Avail Nexus SDK (`@avail-project/nexus-widgets`)
+- Wagmi for wallet connection
+- ConnectKit for wallet UI
+- React Query for state management
+
 ### API Stubs
 
 An example route handler exists at `src/app/api/payments/route.ts` for server-side actions; wire this to Avail Nexus as needed.

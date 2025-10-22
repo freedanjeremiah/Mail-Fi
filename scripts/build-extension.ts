@@ -1,6 +1,8 @@
 import { context } from "esbuild";
 import { cpSync, mkdirSync } from "fs";
 import { resolve } from "path";
+import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
+import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 
 const isWatch = process.argv.includes("--watch");
 const root = resolve(process.cwd());
@@ -32,6 +34,14 @@ async function run() {
     outdir,
     platform: "browser",
     format: "esm",
+    plugins: [
+      NodeGlobalsPolyfillPlugin({ process: true, buffer: true }),
+      NodeModulesPolyfillPlugin(),
+    ],
+    define: {
+      "process.env.NODE_DEBUG": "false",
+      "global": "globalThis",
+    },
     ...common,
   });
 
