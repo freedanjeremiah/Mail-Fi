@@ -1,11 +1,19 @@
-'use client';
+"use client";
 
 import './polyfills';
+import React, { Suspense } from 'react';
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { mainnet, sepolia, base, arbitrum, arbitrumSepolia, optimism, optimismSepolia } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit';
-import { NexusProvider } from '@avail-project/nexus-widgets';
+
+// Lazy-load NexusProvider to avoid server-side module evaluation of
+// `@avail-project/nexus-widgets` (it references browser-only APIs). This
+// ensures Next.js won't crash during SSR or config-time evaluation.
+const NexusProvider = React.lazy(async () => {
+  const mod = await import('@avail-project/nexus-widgets');
+  return { default: mod.NexusProvider };
+});
 
 const config = createConfig(
   getDefaultConfig({
@@ -31,14 +39,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config} reconnectOnMount={false}>
       <QueryClientProvider client={queryClient}>
         <ConnectKitProvider>
-          <NexusProvider
-            config={{
-              network: 'testnet',
-              debug: true,
-            }}
-          >
-            {children}
-          </NexusProvider>
+          <Suspense fallback={<>{children}</>}>
+            <NexusProvider
+              config={{
+                network: 'testnet',
+                debug: true,
+              }}
+            >
+              {children}
+            </NexusProvider>
+          </Suspense>
         </ConnectKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
