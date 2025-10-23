@@ -1,4 +1,4 @@
-curl -v "https://<VSC_DOMAIN>/api/v1"import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function POST(
   req: Request,
