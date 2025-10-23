@@ -3,15 +3,21 @@
 import { useState, useEffect } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, TransactionMessage, VersionedTransaction } from '@solana/web3.js'
 import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
-  createTransferInstruction,
+  createTransferCheckedInstruction,
   getMint,
-  TOKEN_PROGRAM_ID
+  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
+  createTransferCheckedWithTransferHookInstruction,
+  getTransferHook,
+  resolveExtraAccountMeta,
+  ExtraAccountMetaAccountDataLayout
 } from '@solana/spl-token'
 
+// PYUSD Testnet/Devnet mint address
 const PYUSD_MINT = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM')
 
 interface Contact {
@@ -53,14 +59,20 @@ export default function Home() {
       const sol = await connection.getBalance(publicKey)
       setSolBalance(sol / LAMPORTS_PER_SOL)
 
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-        mint: PYUSD_MINT
-      })
+      try {
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+          mint: PYUSD_MINT,
+          programId: TOKEN_2022_PROGRAM_ID
+        })
 
-      if (tokenAccounts.value.length > 0) {
-        const balance = tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount
-        setPyusdBalance(balance)
-      } else {
+        if (tokenAccounts.value.length > 0) {
+          const balance = tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount
+          setPyusdBalance(balance || 0)
+        } else {
+          setPyusdBalance(0)
+        }
+      } catch (tokenError) {
+        console.warn('Could not fetch PYUSD balance:', tokenError)
         setPyusdBalance(0)
       }
     } catch (error) {
@@ -76,14 +88,33 @@ export default function Home() {
     setStatus({ message: 'Creating transaction...', type: 'info' })
 
     try {
-      const recipientPubkey = new PublicKey(recipientAddress)
-      const mintInfo = await getMint(connection, PYUSD_MINT)
+      // Validate recipient address
+      let recipientPubkey: PublicKey
+      try {
+        recipientPubkey = new PublicKey(recipientAddress)
+      } catch {
+        throw new Error('Invalid recipient address')
+      }
 
-      const fromTokenAccount = await getAssociatedTokenAddress(PYUSD_MINT, publicKey)
-      const toTokenAccount = await getAssociatedTokenAddress(PYUSD_MINT, recipientPubkey)
+      // Get mint info
+      setStatus({ message: 'Fetching token information...', type: 'info' })
+      const mintInfo = await getMint(connection, PYUSD_MINT, undefined, TOKEN_2022_PROGRAM_ID)
 
+      // Get token accounts
+      const fromTokenAccount = await getAssociatedTokenAddress(PYUSD_MINT, publicKey, false, TOKEN_2022_PROGRAM_ID)
+      const toTokenAccount = await getAssociatedTokenAddress(PYUSD_MINT, recipientPubkey, false, TOKEN_2022_PROGRAM_ID)
+
+      // Check if sender has a token account
+      const fromAccountInfo = await connection.getAccountInfo(fromTokenAccount)
+      if (!fromAccountInfo) {
+        throw new Error('You do not have a PYUSD token account. Please get some devnet PYUSD first.')
+      }
+
+      // Build transaction
+      setStatus({ message: 'Building transaction...', type: 'info' })
       const transaction = new Transaction()
 
+      // Create recipient token account if needed
       const toAccountInfo = await connection.getAccountInfo(toTokenAccount)
       if (!toAccountInfo) {
         transaction.add(
@@ -91,29 +122,95 @@ export default function Home() {
             publicKey,
             toTokenAccount,
             recipientPubkey,
-            PYUSD_MINT
+            PYUSD_MINT,
+            TOKEN_2022_PROGRAM_ID
           )
         )
       }
 
+      // Add transfer instruction - use TransferChecked for Token-2022
       const transferAmount = Math.floor(parseFloat(amount) * Math.pow(10, mintInfo.decimals))
 
-      transaction.add(
-        createTransferInstruction(
-          fromTokenAccount,
-          toTokenAccount,
-          publicKey,
-          transferAmount
-        )
-      )
+      // Check if the mint has a transfer hook
+      const transferHook = getTransferHook(mintInfo)
 
+      if (transferHook) {
+        console.log('Token has transfer hook, resolving extra accounts...')
+        // For tokens with transfer hooks, we need to add extra accounts
+        try {
+          transaction.add(
+            await createTransferCheckedWithTransferHookInstruction(
+              connection,
+              fromTokenAccount,
+              PYUSD_MINT,
+              toTokenAccount,
+              publicKey,
+              transferAmount,
+              mintInfo.decimals,
+              [],
+              'confirmed',
+              TOKEN_2022_PROGRAM_ID
+            )
+          )
+        } catch (hookError) {
+          console.warn('Transfer hook instruction failed, falling back to regular transfer:', hookError)
+          transaction.add(
+            createTransferCheckedInstruction(
+              fromTokenAccount,
+              PYUSD_MINT,
+              toTokenAccount,
+              publicKey,
+              transferAmount,
+              mintInfo.decimals,
+              [],
+              TOKEN_2022_PROGRAM_ID
+            )
+          )
+        }
+      } else {
+        transaction.add(
+          createTransferCheckedInstruction(
+            fromTokenAccount,
+            PYUSD_MINT,
+            toTokenAccount,
+            publicKey,
+            transferAmount,
+            mintInfo.decimals,
+            [],
+            TOKEN_2022_PROGRAM_ID
+          )
+        )
+      }
+
+      // Send transaction
       setStatus({ message: 'Please approve transaction in your wallet...', type: 'info' })
 
-      const signature = await sendTransaction(transaction, connection)
+      let signature: string
+      try {
+        signature = await sendTransaction(transaction, connection, {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed',
+          maxRetries: 3
+        })
+        console.log('Transaction sent:', signature)
+      } catch (sendError: any) {
+        console.error('Send transaction error:', sendError)
+        throw new Error(`Failed to send transaction: ${sendError?.message || sendError}`)
+      }
 
+      // Confirm transaction
       setStatus({ message: 'Confirming transaction...', type: 'info' })
+      try {
+        const confirmation = await connection.confirmTransaction(signature, 'confirmed')
+        console.log('Transaction confirmed:', confirmation)
 
-      await connection.confirmTransaction(signature, 'confirmed')
+        if (confirmation.value.err) {
+          throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`)
+        }
+      } catch (confirmError: any) {
+        console.error('Confirmation error:', confirmError)
+        throw new Error(`Failed to confirm transaction: ${confirmError?.message || confirmError}`)
+      }
 
       setStatus({
         message: `Transaction successful! View on explorer: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
@@ -124,7 +221,23 @@ export default function Home() {
       setAmount('')
       setTimeout(updateBalances, 2000)
     } catch (error: any) {
-      setStatus({ message: `Transaction failed: ${error.message}`, type: 'error' })
+      console.error('=== Transaction Error Details ===')
+      console.error('Error:', error)
+      console.error('Error name:', error?.name)
+      console.error('Error message:', error?.message)
+      console.error('Error cause:', error?.cause)
+      console.error('Error stack:', error?.stack)
+      console.error('================================')
+
+      let errorMessage = 'Transaction failed'
+
+      if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.toString()) {
+        errorMessage = error.toString()
+      }
+
+      setStatus({ message: errorMessage, type: 'error' })
     } finally {
       setLoading(false)
     }
