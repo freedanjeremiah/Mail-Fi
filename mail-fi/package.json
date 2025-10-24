@@ -19,6 +19,7 @@
     "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.98.4",
     "@tailwindcss/postcss": "^4.1.15",
+    "anchor": "^1.4.1",
     "autoprefixer": "^10.4.21",
     "next": "^16.0.0",
     "postcss": "^8.5.6",

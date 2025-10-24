@@ -1,0 +1,20 @@
+[package]
+name = "mail-fi-contracts"
+version = "0.1.0"
+description = "Smart contracts for Mail-Fi payment platform"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "mail_fi_contracts"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { version = "0.28.0", features = ["init-if-needed"] }
+anchor-spl = "0.28.0"

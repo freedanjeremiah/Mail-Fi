@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, TransactionMessage, VersionedTransaction } from '@solana/web3.js'
+import Link from 'next/link'
 import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
@@ -290,6 +291,24 @@ export default function Home() {
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-white mb-2">💸 Mail-Fi</h1>
           <p className="text-xl text-purple-200">Send PYUSD on Solana with ease</p>
+        </div>
+
+        {/* Navigation */}
+        <div className="bg-white rounded-2xl shadow-2xl p-4 mb-6">
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link href="/" className="px-6 py-2 bg-purple-600 text-white rounded-lg">
+              Send PYUSD
+            </Link>
+            <Link href="/escrow" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+              Escrow
+            </Link>
+            <Link href="/recurring" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+              Recurring
+            </Link>
+            <Link href="/multisig" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+              Multisig
+            </Link>
+          </div>
         </div>
 
         {/* Wallet Connection Card */}
