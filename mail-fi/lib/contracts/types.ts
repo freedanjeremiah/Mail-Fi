@@ -1,5 +1,9 @@
 import { PublicKey } from '@solana/web3.js'
 
+// Contract Program IDs
+export const PYUSD_MANIFESTO_PROGRAM_ID = new PublicKey('Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS')
+
+// Escrow Types
 export interface EscrowAccount {
   creator: PublicKey
   recipient: PublicKey
@@ -11,6 +15,7 @@ export interface EscrowAccount {
   bump: number
 }
 
+// Recurring Payment Types
 export interface RecurringPayment {
   payer: PublicKey
   recipient: PublicKey
@@ -25,6 +30,7 @@ export interface RecurringPayment {
   bump: number
 }
 
+// Multisig Types
 export interface Multisig {
   creator: PublicKey
   owners: PublicKey[]

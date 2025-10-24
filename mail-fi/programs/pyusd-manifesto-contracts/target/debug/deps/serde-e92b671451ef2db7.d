@@ -1,0 +1,14 @@
+/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/deps/serde-e92b671451ef2db7.d: /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/build/serde-962ad13b4684af85/out/private.rs
+
+/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/deps/libserde-e92b671451ef2db7.rlib: /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/build/serde-962ad13b4684af85/out/private.rs
+
+/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/deps/libserde-e92b671451ef2db7.rmeta: /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/build/serde-962ad13b4684af85/out/private.rs
+
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/build/serde-962ad13b4684af85/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/build/serde-962ad13b4684af85/out

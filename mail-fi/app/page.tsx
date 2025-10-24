@@ -289,7 +289,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">💸 Mail-Fi</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">💸 PYUSD Manifesto</h1>
           <p className="text-xl text-purple-200">Send PYUSD on Solana with ease</p>
         </div>
 

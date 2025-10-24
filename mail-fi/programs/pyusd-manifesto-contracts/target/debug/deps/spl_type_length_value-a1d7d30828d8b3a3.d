@@ -1,0 +1,9 @@
+/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/deps/spl_type_length_value-a1d7d30828d8b3a3.d: /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/lib.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/error.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/length.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/state.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/variable_len_pack.rs
+
+/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/deps/libspl_type_length_value-a1d7d30828d8b3a3.rmeta: /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/lib.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/error.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/length.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/state.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/variable_len_pack.rs
+
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/lib.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/error.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/length.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/state.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-type-length-value-0.8.0/src/variable_len_pack.rs:

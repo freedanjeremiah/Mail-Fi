@@ -1,7 +1,7 @@
 {
-  "name": "mail-fi-frontend",
+  "name": "pyusd-manifesto-frontend",
   "version": "1.0.0",
-  "description": "Mail-Fi PYUSD Transaction Frontend",
+  "description": "PYUSD Manifesto - PYUSD Transaction Platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

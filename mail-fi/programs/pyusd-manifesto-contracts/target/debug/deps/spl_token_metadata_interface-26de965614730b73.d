@@ -1,0 +1,8 @@
+/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/deps/spl_token_metadata_interface-26de965614730b73.d: /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/lib.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/error.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/instruction.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/state.rs
+
+/Users/I578432/Desktop/Mail-Fi/mail-fi/programs/mail-fi-contracts/target/debug/deps/libspl_token_metadata_interface-26de965614730b73.rmeta: /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/lib.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/error.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/instruction.rs /Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/state.rs
+
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/lib.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/error.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/instruction.rs:
+/Users/I578432/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/state.rs:

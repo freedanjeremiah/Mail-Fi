@@ -3,7 +3,7 @@ import './globals.css'
 import { WalletProvider } from '../components/WalletProvider'
 
 export const metadata: Metadata = {
-  title: 'Mail-Fi - PYUSD Transactions',
+  title: 'PYUSD Manifesto - PYUSD Transactions',
   description: 'Send PYUSD on Solana with ease',
 }
 

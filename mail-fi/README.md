@@ -1,4 +1,4 @@
-# Mail-Fi Frontend (Next.js)
+# PYUSD Manifesto Frontend (Next.js)
 
 A modern Next.js frontend for sending PYUSD on Solana testnet using Phantom Wallet.
 
@@ -65,7 +65,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Project Structure
 
 ```
-mail-fi-frontend/
+pyusd-manifesto-frontend/
 ├── app/
 │   ├── layout.tsx      # Root layout with WalletProvider
 │   ├── page.tsx        # Main transaction UI

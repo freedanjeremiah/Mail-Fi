@@ -25,7 +25,7 @@ export interface EscrowData {
 const PYUSD_MINT = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM')
 
 export class EscrowManager {
-  private STORAGE_KEY = 'mail_fi_escrows'
+  private STORAGE_KEY = 'pyusd_manifesto_escrows'
 
   private getEscrows(): EscrowData[] {
     if (typeof window === 'undefined') return []

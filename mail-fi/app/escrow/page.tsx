@@ -121,7 +121,7 @@ export default function EscrowPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">💸 Mail-Fi - Escrow</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">💸 PYUSD Manifesto - Escrow</h1>
           <p className="text-xl text-purple-200">Create payment requests with escrow protection</p>
         </div>
 
