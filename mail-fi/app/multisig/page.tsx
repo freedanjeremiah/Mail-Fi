@@ -70,6 +70,9 @@ export default function MultisigPage() {
               Recurring
             </Link>
             <Link href="/multisig" className="px-6 py-2 bg-purple-600 text-white rounded-lg">
+            <Link href="/staking" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+              Staking
+            </Link>
               Multisig
             </Link>
           </div>

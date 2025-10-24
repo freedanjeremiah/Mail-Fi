@@ -57,6 +57,9 @@ export default function RecurringPage() {
               Recurring
             </Link>
             <Link href="/multisig" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+            <Link href="/staking" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+              Staking
+            </Link>
               Multisig
             </Link>
           </div>

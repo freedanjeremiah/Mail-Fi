@@ -5,10 +5,12 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod escrow;
 pub mod recurring_payment;
 pub mod multisig;
+pub mod staking;
 
 pub use escrow::*;
 pub use recurring_payment::*;
 pub use multisig::*;
+pub use staking::*;
 
 #[program]
 pub mod pyusd_manifesto_contracts {
@@ -96,6 +98,35 @@ pub mod pyusd_manifesto_contracts {
     pub fn reject_transaction(ctx: Context<RejectTransaction>) -> Result<()> {
         multisig::reject_transaction(ctx)
     }
+
+    // ==================== STAKING/YIELD FARMING ====================
+
+    pub fn initialize_staking_pool(
+        ctx: Context<InitializeStakingPool>,
+        reward_rate_per_second: u64,
+    ) -> Result<()> {
+        staking::initialize_staking_pool(ctx, reward_rate_per_second)
+    }
+
+    pub fn stake(
+        ctx: Context<Stake>,
+        amount: u64,
+        lock_period: LockPeriod,
+    ) -> Result<()> {
+        staking::stake(ctx, amount, lock_period)
+    }
+
+    pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
+        staking::claim_rewards(ctx)
+    }
+
+    pub fn unstake(ctx: Context<Unstake>, amount: u64) -> Result<()> {
+        staking::unstake(ctx, amount)
+    }
+
+    pub fn compound_rewards(ctx: Context<CompoundRewards>) -> Result<()> {
+        staking::compound_rewards(ctx)
+    }
 }
 
 #[error_code]
@@ -126,4 +157,12 @@ pub enum ErrorCode {
     AlreadyApproved,
     #[msg("Not an owner")]
     NotAnOwner,
+    #[msg("Invalid calculation")]
+    InvalidCalculation,
+    #[msg("No rewards to claim")]
+    NoRewardsToClaim,
+    #[msg("Stake is still locked")]
+    StakeStillLocked,
+    #[msg("Insufficient stake amount")]
+    InsufficientStake,
 }
