@@ -1746,6 +1746,39 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === "PING") {
     sendResponse({ ok: true });
   }
+  if (msg?.type === "ENSURE_NEXUS_CONFIG") {
+    const url = msg.url;
+    const tabId = _sender?.tab?.id;
+    if (tabId && url) {
+      try {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId },
+            func: (u) => {
+              try {
+                window.__MAILFI_NEXUS_UMD_URL = u;
+                try {
+                  window.postMessage({ type: "MAILFI_NEXUS_CONFIG_LOADED", url: u }, "*");
+                } catch (e) {
+                }
+              } catch (e) {
+              }
+            },
+            args: [url],
+            world: "MAIN"
+          },
+          () => {
+            sendResponse({ ok: true });
+          }
+        );
+        return true;
+      } catch (e) {
+        sendResponse({ ok: false, error: String(e) });
+        return true;
+      }
+    }
+    sendResponse({ ok: false, error: "missing tabId or url" });
+  }
   return true;
 });
 /*! Bundled license information:

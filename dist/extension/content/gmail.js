@@ -1742,49 +1742,117 @@ function ieee754write(buffer, value, offset, isLE, mLen, nBytes) {
 }
 
 // extension/content/gmail.ts
-function ensurePanel() {
-  const id = "mailfi-panel";
-  let panel = document.getElementById(id);
-  if (!panel) {
-    panel = document.createElement("iframe");
-    panel.id = id;
-    panel.src = chrome.runtime.getURL("ui/panel.html");
-    panel.style.position = "fixed";
-    panel.style.top = "64px";
-    panel.style.right = "16px";
-    panel.style.width = "380px";
-    panel.style.height = "520px";
-    panel.style.border = "0";
-    panel.style.boxShadow = "0 12px 32px rgba(0,0,0,.2)";
-    panel.style.borderRadius = "12px";
-    panel.style.zIndex = "2147483647";
-    panel.style.display = "none";
-    document.body.appendChild(panel);
+function injectNexusBundle() {
+  try {
+    try {
+      const cfgSrc = chrome.runtime.getURL("injected/nexus-config.js");
+      if (!document.querySelector(`script[src="${cfgSrc}"]`)) {
+        const cfgScript = document.createElement("script");
+        cfgScript.src = cfgSrc;
+        cfgScript.async = true;
+        (document.documentElement || document.head || document.body).appendChild(cfgScript);
+        console.debug("[Mail-Fi] injected nexus-config.js into page");
+      }
+    } catch (e) {
+      console.debug("[Mail-Fi] failed to inject nexus-config.js", e);
+    }
+    try {
+      const devUmd = "http://localhost:3000/nexus-umd.js";
+      chrome.runtime.sendMessage({ type: "ENSURE_NEXUS_CONFIG", url: devUmd }, (resp) => {
+        if (!resp || resp.ok !== true) {
+          console.debug("[Mail-Fi] background ENSURE_NEXUS_CONFIG failed", resp);
+        } else {
+          console.debug("[Mail-Fi] background ENSURE_NEXUS_CONFIG executed");
+        }
+      });
+    } catch (e) {
+    }
+    const preferred = chrome.runtime.getURL("injected/nexus-ca.js");
+    const fallback = chrome.runtime.getURL("injected/nexus-init.js");
+    if (!document.querySelector(`script[src="${preferred}"]`)) {
+      const s = document.createElement("script");
+      s.src = preferred;
+      s.async = true;
+      (document.documentElement || document.head || document.body).appendChild(s);
+      console.debug("[Mail-Fi] injected nexus-ca.js into page");
+      try {
+        const bridge = chrome.runtime.getURL("injected/nexus-messaging-bridge.js");
+        if (!document.querySelector(`script[src="${bridge}"]`)) {
+          const b = document.createElement("script");
+          b.src = bridge;
+          b.async = true;
+          (document.documentElement || document.head || document.body).appendChild(b);
+          console.debug("[Mail-Fi] injected nexus-messaging-bridge.js into page");
+        }
+      } catch (e) {
+        console.debug("[Mail-Fi] failed to inject nexus messaging bridge", e);
+      }
+      return;
+    }
+    if (!document.querySelector(`script[src="${fallback}"]`)) {
+      const s = document.createElement("script");
+      s.src = fallback;
+      s.async = true;
+      (document.documentElement || document.head || document.body).appendChild(s);
+      console.debug("[Mail-Fi] injected nexus-init.js into page");
+      try {
+        const bridge = chrome.runtime.getURL("injected/nexus-messaging-bridge.js");
+        if (!document.querySelector(`script[src="${bridge}"]`)) {
+          const b = document.createElement("script");
+          b.src = bridge;
+          b.async = true;
+          (document.documentElement || document.head || document.body).appendChild(b);
+          console.debug("[Mail-Fi] injected nexus-messaging-bridge.js into page");
+        }
+      } catch (e) {
+        console.debug("[Mail-Fi] failed to inject nexus messaging bridge", e);
+      }
+    }
+  } catch (e) {
+    console.warn("[Mail-Fi] failed to inject nexus bundle into page", e);
   }
-  return panel;
 }
-function ensureFab(panel) {
-  const id = "mailfi-fab";
-  let btn = document.getElementById(id);
-  if (!btn) {
-    btn = document.createElement("button");
-    btn.id = id;
-    btn.textContent = "Pay with Avail";
-    btn.className = "mailfi-fab";
-    btn.addEventListener("click", () => {
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-    });
-    document.body.appendChild(btn);
-  }
-  return btn;
-}
-function togglePanel(panel, recipient) {
-  panel.style.display = panel.style.display === "none" ? "block" : "none";
-  if (recipient && panel.style.display === "block") {
-    panel.contentWindow?.postMessage({ type: "SET_RECIPIENT", recipient }, "*");
+var pendingTransfers = /* @__PURE__ */ new Map();
+function dispatchOpenTransferWithOptions(options) {
+  try {
+    window.postMessage({ type: "MAILFI_OPEN_TRANSFER", ...options }, "*");
+    console.debug("[Mail-Fi] posted MAILFI_OPEN_TRANSFER", options);
+  } catch (e) {
+    console.warn("[Mail-Fi] failed to post MAILFI_OPEN_TRANSFER", e);
   }
 }
-function injectComposeButton(composeWindow, panel) {
+function insertPaymentSnippet(composeWindow, payload, options) {
+  try {
+    const body = composeWindow.querySelector('[aria-label="Message Body"], [role="textbox"][contenteditable="true"]');
+    const amount = options?.amount || payload?.amount || "";
+    const token = options?.token || payload?.token || "";
+    const txHash = payload?.txHash || payload?.transactionHash || payload?.txid || null;
+    const intentUrl = payload?.intentUrl || null;
+    let snippet = "";
+    if (txHash) {
+      snippet = `Paid ${amount || ""} ${token || ""} via Avail. Transaction: ${txHash}`;
+    } else if (intentUrl) {
+      snippet = `Paid ${amount || ""} ${token || ""} via Avail. Details: ${intentUrl}`;
+    } else {
+      snippet = `Paid ${amount || ""} ${token || ""} via Avail.`.trim();
+    }
+    if (!body) {
+      console.warn("[Mail-Fi] compose body not found to insert payment snippet");
+      return;
+    }
+    body.focus();
+    try {
+      document.execCommand("insertText", false, "\n" + snippet + "\n");
+    } catch (e) {
+      const wrapper = document.createElement("div");
+      wrapper.textContent = snippet;
+      body.appendChild(wrapper);
+    }
+  } catch (e) {
+    console.error("[Mail-Fi] failed to insert payment snippet", e);
+  }
+}
+function injectComposeButton(composeWindow) {
   const toolbar = composeWindow.querySelector('[role="toolbar"]');
   console.log("[Mail-Fi] Toolbar found:", !!toolbar, composeWindow);
   if (!toolbar) return;
@@ -1792,6 +1860,8 @@ function injectComposeButton(composeWindow, panel) {
   if (existingBtn) return;
   const btn = document.createElement("button");
   btn.className = "mailfi-compose-btn";
+  btn.disabled = true;
+  btn.title = "Nexus loading\u2026";
   btn.setAttribute("aria-label", "Pay with Avail");
   btn.innerHTML = `
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -1802,37 +1872,98 @@ function injectComposeButton(composeWindow, panel) {
   btn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
+    injectNexusBundle();
     const toField = composeWindow.querySelector('input[name="to"]');
     const recipient = toField?.value || "";
-    togglePanel(panel, recipient);
+    let amount = null;
+    let token = null;
+    try {
+      amount = window.prompt?.("Amount to send (optional)", "") || null;
+      token = window.prompt?.("Token (e.g. AVAIL, USDC) (optional)", "") || null;
+    } catch (e2) {
+    }
+    const correlationId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const options = { recipient: recipient || void 0, amount, token, correlationId };
+    pendingTransfers.set(correlationId, { composeWindow, options });
+    dispatchOpenTransferWithOptions(options);
   });
-  const lastBtn = toolbar.querySelector('[role="button"]:last-child');
-  if (lastBtn) {
-    toolbar.insertBefore(btn, lastBtn);
-  } else {
-    toolbar.appendChild(btn);
+  try {
+    const lastBtn = toolbar.querySelector('[role="button"]:last-child');
+    if (lastBtn && lastBtn.parentElement === toolbar) {
+      toolbar.insertBefore(btn, lastBtn);
+    } else {
+      toolbar.appendChild(btn);
+    }
+  } catch (e) {
+    try {
+      toolbar.appendChild(btn);
+    } catch (err) {
+      console.error("[Mail-Fi] Failed to insert compose button", err);
+    }
   }
 }
-function observeComposeWindows(panel) {
+function enableComposeButtonsWhenReady() {
+  window.addEventListener("message", (ev) => {
+    try {
+      if (!ev || !ev.data || ev.source !== window) return;
+      const d = ev.data;
+      if (d.type === "MAILFI_NEXUS_READY") {
+        const ready = !!d.ready;
+        const buttons = document.querySelectorAll(".mailfi-compose-btn");
+        buttons.forEach((b) => {
+          try {
+            b.disabled = !ready;
+            b.title = ready ? "Pay with Avail" : "Nexus loading\u2026";
+          } catch (e) {
+          }
+        });
+      }
+    } catch (e) {
+    }
+  });
+}
+function observeComposeWindows() {
   const observer = new MutationObserver(() => {
     const composeWindows = document.querySelectorAll('[role="dialog"], div[class*="M9"]');
     console.log("[Mail-Fi] Found compose windows:", composeWindows.length);
     composeWindows.forEach((win) => {
-      injectComposeButton(win, panel);
+      injectComposeButton(win);
     });
   });
   observer.observe(document.body, { childList: true, subtree: true });
   const existingComposeWindows = document.querySelectorAll('[role="dialog"], div[class*="M9"]');
   console.log("[Mail-Fi] Initial compose windows:", existingComposeWindows.length);
   existingComposeWindows.forEach((win) => {
-    injectComposeButton(win, panel);
+    injectComposeButton(win);
   });
 }
 (function init2() {
   if (!/mail\.google\.com/.test(location.host)) return;
-  const panel = ensurePanel();
-  ensureFab(panel);
-  observeComposeWindows(panel);
+  injectNexusBundle();
+  observeComposeWindows();
+  enableComposeButtonsWhenReady();
+  window.addEventListener("message", (ev) => {
+    try {
+      if (!ev || !ev.data || ev.source !== window) return;
+      const d = ev.data;
+      if (d.type === "MAILFI_TRANSFER_COMPLETE") {
+        const correlationId = d.correlationId;
+        const payload = d.data || {};
+        if (!correlationId) return;
+        const entry = pendingTransfers.get(correlationId);
+        if (entry) {
+          insertPaymentSnippet(entry.composeWindow, payload, entry.options);
+          pendingTransfers.delete(correlationId);
+        }
+      } else if (d.type === "MAILFI_TRANSFER_ERROR") {
+        console.warn("[Mail-Fi] transfer error", d.error, d.correlationId);
+      } else if (d.type === "MAILFI_TRANSFER_STARTED") {
+        console.debug("[Mail-Fi] transfer started", d.correlationId);
+      }
+    } catch (e) {
+      console.debug("[Mail-Fi] message handler error", e);
+    }
+  });
   chrome.runtime.sendMessage({ type: "PING" }, () => {
   });
 })();

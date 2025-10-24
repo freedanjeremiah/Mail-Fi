@@ -30,6 +30,7 @@ async function run() {
       "background/index": resolve(root, "extension", "background", "index.ts"),
       "content/gmail": resolve(root, "extension", "content", "gmail.ts"),
       "ui/panel": resolve(root, "extension", "ui", "panel.tsx"),
+      "injected/nexus-init": resolve(root, "extension", "injected", "nexus-init.ts"),
     },
     outdir,
     platform: "browser",
@@ -51,6 +52,22 @@ async function run() {
   } else {
     await ctx.rebuild();
     await ctx.dispose();
+    // Copy prebuilt injected bundle from extension/injected (nexus-ca.js) if present
+    try {
+      cpSync(resolve(root, "extension", "injected", "nexus-ca.js"), resolve(outdir, "injected", "nexus-ca.js"));
+    } catch (err) {
+      // ignore if not present
+    }
+    try {
+      cpSync(resolve(root, "extension", "injected", "nexus-messaging-bridge.js"), resolve(outdir, "injected", "nexus-messaging-bridge.js"));
+    } catch (err) {
+      // ignore if not present
+    }
+    try {
+      cpSync(resolve(root, "extension", "injected", "nexus-config.js"), resolve(outdir, "injected", "nexus-config.js"));
+    } catch (err) {
+      // ignore if not present
+    }
     console.log("Built extension to dist/extension");
   }
 }
