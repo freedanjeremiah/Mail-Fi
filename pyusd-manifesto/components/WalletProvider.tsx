@@ -14,6 +14,7 @@ export const WalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const wallets = useMemo(
     () => [
+      // Phantom wallet adapter with explicit configuration
       new PhantomWalletAdapter(),
     ],
     []
@@ -21,7 +22,13 @@ export const WalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <SolanaWalletProvider wallets={wallets} autoConnect>
+      <SolanaWalletProvider 
+        wallets={wallets} 
+        autoConnect={true}
+        onError={(error) => {
+          console.error('Wallet error:', error)
+        }}
+      >
         <WalletModalProvider>
           {children}
         </WalletModalProvider>

@@ -1,18 +1,82 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { WalletButton } from '@/components/WalletButton'
+import { PublicKey } from '@solana/web3.js'
 import Link from 'next/link'
+import {
+  createMultisig,
+  proposeTransaction,
+  approveTransaction,
+  executeTransaction,
+  rejectTransaction,
+  getAllUserMultisigs
+} from '@/lib/contracts/multisig'
+
+interface Multisig {
+  publicKey: PublicKey
+  creator: PublicKey
+  owners: PublicKey[]
+  threshold: number
+  transactionCount: number
+  createdAt: number
+}
+
+interface MultisigTransaction {
+  publicKey: PublicKey
+  multisig: PublicKey
+  recipient: PublicKey
+  amount: number
+  transactionIndex: number
+  approvals: PublicKey[]
+  executed: boolean
+  proposer: PublicKey
+  createdAt: number
+  description: string
+}
 
 export default function MultisigPage() {
   const { connection } = useConnection()
-  const { publicKey } = useWallet()
+  const wallet = useWallet()
+  const { publicKey } = wallet
 
   const [owners, setOwners] = useState(['', ''])
   const [threshold, setThreshold] = useState('2')
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<{ message: string; type: 'success' | 'error' | 'info' }>()
+  const [multisigs, setMultisigs] = useState<Multisig[]>([])
+  const [loadingMultisigs, setLoadingMultisigs] = useState(false)
+  const [selectedMultisig, setSelectedMultisig] = useState<PublicKey | null>(null)
+  const [txRecipient, setTxRecipient] = useState('')
+  const [txAmount, setTxAmount] = useState('')
+  const [txDescription, setTxDescription] = useState('')
+
+  useEffect(() => {
+    if (!publicKey || !wallet.connected) {
+      return
+    }
+
+    const timer = setTimeout(() => {
+      loadMultisigs()
+    }, 150)
+
+    return () => clearTimeout(timer)
+  }, [publicKey, wallet.connected, connection])
+
+  const loadMultisigs = async () => {
+    if (!publicKey || !wallet.connected) return
+
+    setLoadingMultisigs(true)
+    try {
+      const userMultisigs = await getAllUserMultisigs(connection, wallet)
+      setMultisigs(userMultisigs)
+    } catch (error) {
+      console.error('Error loading multisigs:', error)
+    } finally {
+      setLoadingMultisigs(false)
+    }
+  }
 
   const addOwner = () => {
     if (owners.length < 10) {
@@ -32,22 +96,76 @@ export default function MultisigPage() {
 
   const handleCreateMultisig = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!publicKey) return
+    if (!publicKey || !wallet) return
 
     setLoading(true)
     setStatus({ message: 'Creating multisig wallet...', type: 'info' })
 
     try {
-      // TODO: Implement multisig creation
+      const ownerPubkeys = owners.map(owner => new PublicKey(owner))
+      const thresholdNum = parseInt(threshold)
+
+      const { multisigPDA, signature } = await createMultisig(
+        connection,
+        wallet,
+        ownerPubkeys,
+        thresholdNum
+      )
+
       setStatus({
-        message: 'Multisig wallet created successfully! (Feature coming soon)',
+        message: `Multisig wallet created! View transaction: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
         type: 'success'
       })
+
+      setOwners(['', ''])
+      setThreshold('2')
+      setTimeout(loadMultisigs, 2000)
     } catch (error: any) {
-      setStatus({ message: error.message, type: 'error' })
+      console.error('Error creating multisig:', error)
+      setStatus({ message: error.message || 'Failed to create multisig', type: 'error' })
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleProposeTransaction = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!publicKey || !wallet || !selectedMultisig) return
+
+    setLoading(true)
+    setStatus({ message: 'Proposing transaction...', type: 'info' })
+
+    try {
+      const recipientPubkey = new PublicKey(txRecipient)
+      const amountNum = parseFloat(txAmount)
+
+      const { transactionPDA, signature } = await proposeTransaction(
+        connection,
+        wallet,
+        selectedMultisig,
+        amountNum,
+        recipientPubkey,
+        txDescription
+      )
+
+      setStatus({
+        message: `Transaction proposed! View transaction: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+        type: 'success'
+      })
+
+      setTxRecipient('')
+      setTxAmount('')
+      setTxDescription('')
+    } catch (error: any) {
+      console.error('Error proposing transaction:', error)
+      setStatus({ message: error.message || 'Failed to propose transaction', type: 'error' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatDate = (timestamp: number): string => {
+    return new Date(timestamp * 1000).toLocaleString()
   }
 
   return (
@@ -70,17 +188,17 @@ export default function MultisigPage() {
               Recurring
             </Link>
             <Link href="/multisig" className="px-6 py-2 bg-purple-600 text-white rounded-lg">
-            <Link href="/staking" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-              Staking
-            </Link>
               Multisig
+            </Link>
+            <Link href="/yield-farming" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+              Yield Farming
             </Link>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6">
           <div className="flex justify-center">
-            <WalletMultiButton />
+            <WalletButton />
           </div>
         </div>
 
@@ -175,6 +293,107 @@ export default function MultisigPage() {
                 <li>Enhanced security for business and shared accounts</li>
               </ol>
             </div>
+          </div>
+        )}
+
+        {publicKey && multisigs.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-2xl p-8 mt-6">
+            <h2 className="text-2xl font-bold mb-6">Your Multisig Wallets</h2>
+
+            {loadingMultisigs ? (
+              <p className="text-center text-gray-500 py-8">Loading multisig wallets...</p>
+            ) : (
+              <div className="space-y-4">
+                {multisigs.map((multisig, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-6">
+                    <div className="mb-4">
+                      <h3 className="font-semibold text-lg">Multisig Wallet #{index + 1}</h3>
+                      <p className="text-sm text-gray-600 font-mono">
+                        {multisig.publicKey.toString().substring(0, 40)}...
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Owners:</span>
+                        <span className="font-semibold ml-2">{multisig.owners.length}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Threshold:</span>
+                        <span className="font-semibold ml-2">{multisig.threshold}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Transactions:</span>
+                        <span className="font-semibold ml-2">{multisig.transactionCount}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Created:</span>
+                        <span className="font-semibold ml-2">{formatDate(multisig.createdAt)}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedMultisig(selectedMultisig === multisig.publicKey ? null : multisig.publicKey)}
+                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                      {selectedMultisig === multisig.publicKey ? 'Hide Details' : 'Propose Transaction'}
+                    </button>
+
+                    {selectedMultisig && selectedMultisig.equals(multisig.publicKey) && (
+                      <form onSubmit={handleProposeTransaction} className="mt-4 p-4 bg-white rounded-lg border-2 border-purple-200">
+                        <h4 className="font-semibold mb-4">Propose New Transaction</h4>
+
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium mb-2">Recipient Address</label>
+                          <input
+                            type="text"
+                            value={txRecipient}
+                            onChange={(e) => setTxRecipient(e.target.value)}
+                            className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                            placeholder="Enter recipient wallet address"
+                            required
+                          />
+                        </div>
+
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium mb-2">Amount (PYUSD)</label>
+                          <input
+                            type="number"
+                            value={txAmount}
+                            onChange={(e) => setTxAmount(e.target.value)}
+                            className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                            placeholder="0.00"
+                            step="0.01"
+                            min="0.01"
+                            required
+                          />
+                        </div>
+
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium mb-2">Description</label>
+                          <textarea
+                            value={txDescription}
+                            onChange={(e) => setTxDescription(e.target.value)}
+                            className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                            placeholder="Payment for..."
+                            rows={2}
+                            required
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="w-full bg-purple-600 text-white font-semibold py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                        >
+                          {loading ? 'Proposing...' : 'Propose Transaction'}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

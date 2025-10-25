@@ -2,16 +2,42 @@
 
 import { useState, useEffect } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { WalletButton } from '@/components/WalletButton'
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
 import Link from 'next/link'
-import { stakingManager, StakeData, LockPeriod } from '@/lib/staking-manager'
+import {
+  initializeStakingPool,
+  stake,
+  claimRewards,
+  unstake,
+  compoundRewards,
+  getUserStake,
+  getStakingPool,
+  type LockPeriod as ContractLockPeriod
+} from '@/lib/contracts/yield-farming'
 
 const PYUSD_MINT = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM')
 
-export default function StakingPage() {
+type LockPeriod = 'none' | '30days' | '90days' | '180days'
+
+interface StakeData {
+  publicKey: PublicKey
+  staker: PublicKey
+  amountStaked: number
+  pendingRewards: number
+  totalClaimed: number
+  currentAPY: number
+  stakedAt: number
+  lastClaimAt: number
+  lockPeriod: LockPeriod
+  lockEndTime: number
+}
+
+export default function YieldFarmingPage() {
   const { connection } = useConnection()
-  const { publicKey } = useWallet()
+  const wallet = useWallet()
+  const { publicKey } = wallet
 
   const [pyusdBalance, setPyusdBalance] = useState<number>(0)
   const [stakeAmount, setStakeAmount] = useState('')
@@ -26,18 +52,24 @@ export default function StakingPage() {
   })
 
   useEffect(() => {
-    if (publicKey) {
+    if (!publicKey || !wallet.connected) {
+      return
+    }
+
+    const timer = setTimeout(() => {
       loadStakingData()
       loadPYUSDBalance()
-    }
-  }, [publicKey])
+    }, 150)
+
+    return () => clearTimeout(timer)
+  }, [publicKey, wallet.connected])
 
   const loadPYUSDBalance = async () => {
-    if (!publicKey) return
+    if (!publicKey || !wallet.connected) return
     try {
       const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
         mint: PYUSD_MINT,
-        programId: new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb')
+        programId: TOKEN_2022_PROGRAM_ID
       })
       if (tokenAccounts.value.length > 0) {
         const balance = tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount
@@ -48,13 +80,26 @@ export default function StakingPage() {
     }
   }
 
-  const loadStakingData = () => {
-    if (!publicKey) return
-    const stake = stakingManager.getUserStake(publicKey)
-    setUserStake(stake)
+  const loadStakingData = async () => {
+    if (!publicKey || !wallet.connected) return
 
-    const stats = stakingManager.getPoolStats()
-    setPoolStats(stats)
+    try {
+      const userStakeData = await getUserStake(connection, wallet)
+      if (userStakeData) {
+        setUserStake(userStakeData)
+      }
+
+      const poolData = await getStakingPool(connection, wallet)
+      if (poolData) {
+        setPoolStats({
+          totalStaked: poolData.totalStaked,
+          totalStakers: poolData.totalStakers,
+          averageAPY: 22
+        })
+      }
+    } catch (error) {
+      console.error('Error loading staking data:', error)
+    }
   }
 
   const getTierName = (amount: number): string => {
@@ -87,90 +132,128 @@ export default function StakingPage() {
     return baseAPY * multiplier
   }
 
+  const toContractLockPeriod = (lockPeriod: LockPeriod): ContractLockPeriod => {
+    switch (lockPeriod) {
+      case '30days':
+        return 'ThirtyDays'
+      case '90days':
+        return 'NinetyDays'
+      case '180days':
+        return 'OneEightyDays'
+      default:
+        return 'None'
+    }
+  }
+
   const handleStake = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!publicKey || !stakeAmount) return
+    if (!publicKey || !wallet.connected || !stakeAmount) return
 
     setLoading(true)
     setStatus({ message: 'Creating stake...', type: 'info' })
 
     try {
       const amount = parseFloat(stakeAmount)
-      await stakingManager.stake(publicKey, amount, selectedLockPeriod)
+      const signature = await stake(
+        connection,
+        wallet,
+        amount,
+        toContractLockPeriod(selectedLockPeriod)
+      )
 
       setStatus({
-        message: `Successfully staked ${amount} PYUSD!`,
+        message: `Successfully staked ${amount} PYUSD! View transaction: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
         type: 'success'
       })
 
       setStakeAmount('')
-      loadStakingData()
-      loadPYUSDBalance()
+      setTimeout(() => {
+        loadStakingData()
+        loadPYUSDBalance()
+      }, 2000)
     } catch (error: any) {
-      setStatus({ message: error.message, type: 'error' })
+      console.error('Error staking:', error)
+      setStatus({ message: error.message || 'Failed to stake', type: 'error' })
     } finally {
       setLoading(false)
     }
   }
 
   const handleClaimRewards = async () => {
-    if (!publicKey || !userStake) return
+    if (!publicKey || !wallet.connected || !userStake) return
 
     setLoading(true)
     setStatus({ message: 'Claiming rewards...', type: 'info' })
 
     try {
-      await stakingManager.claimRewards(publicKey)
+      const signature = await claimRewards(connection, wallet)
+
       setStatus({
-        message: `Successfully claimed ${userStake.pendingRewards.toFixed(2)} PYUSD!`,
+        message: `Successfully claimed rewards! View transaction: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
         type: 'success'
       })
-      loadStakingData()
-      loadPYUSDBalance()
+
+      setTimeout(() => {
+        loadStakingData()
+        loadPYUSDBalance()
+      }, 2000)
     } catch (error: any) {
-      setStatus({ message: error.message, type: 'error' })
+      console.error('Error claiming rewards:', error)
+      setStatus({ message: error.message || 'Failed to claim rewards', type: 'error' })
     } finally {
       setLoading(false)
     }
   }
 
   const handleCompound = async () => {
-    if (!publicKey) return
+    if (!publicKey || !wallet.connected || !userStake) return
 
     setLoading(true)
     setStatus({ message: 'Compounding rewards...', type: 'info' })
 
     try {
-      await stakingManager.compound(publicKey)
+      const signature = await compoundRewards(connection, wallet)
+
       setStatus({
-        message: 'Successfully compounded rewards into your stake!',
+        message: `Successfully compounded rewards! View transaction: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
         type: 'success'
       })
-      loadStakingData()
+
+      setTimeout(loadStakingData, 2000)
     } catch (error: any) {
-      setStatus({ message: error.message, type: 'error' })
+      console.error('Error compounding:', error)
+      setStatus({ message: error.message || 'Failed to compound', type: 'error' })
     } finally {
       setLoading(false)
     }
   }
 
   const handleUnstake = async () => {
-    if (!publicKey || !userStake) return
+    if (!publicKey || !wallet.connected || !userStake) return
 
     if (confirm('Are you sure you want to unstake all your PYUSD?')) {
       setLoading(true)
       setStatus({ message: 'Unstaking...', type: 'info' })
 
       try {
-        await stakingManager.unstake(publicKey, userStake.amountStaked)
+        const signature = await unstake(
+          connection,
+          wallet,
+          userStake.amountStaked
+        )
+
         setStatus({
-          message: `Successfully unstaked ${userStake.amountStaked} PYUSD!`,
+          message: `Successfully unstaked! View transaction: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
           type: 'success'
         })
-        loadStakingData()
-        loadPYUSDBalance()
+
+        setTimeout(() => {
+          loadStakingData()
+          loadPYUSDBalance()
+        }, 2000)
       } catch (error: any) {
-        setStatus({ message: error.message, type: 'error' })
+        console.error('Error unstaking:', error)
+        setStatus({ message: error.message || 'Failed to unstake', type: 'error' })
       } finally {
         setLoading(false)
       }
@@ -196,7 +279,7 @@ export default function StakingPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">💰 PYUSD Manifesto - Staking</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">💰 PYUSD Manifesto - Yield Farming</h1>
           <p className="text-xl text-purple-200">Stake PYUSD and earn passive rewards</p>
         </div>
 
@@ -215,8 +298,8 @@ export default function StakingPage() {
             <Link href="/multisig" className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
               Multisig
             </Link>
-            <Link href="/staking" className="px-6 py-2 bg-purple-600 text-white rounded-lg">
-              Staking
+            <Link href="/yield-farming" className="px-6 py-2 bg-purple-600 text-white rounded-lg">
+              Yield Farming
             </Link>
           </div>
         </div>
@@ -224,7 +307,7 @@ export default function StakingPage() {
         {/* Wallet Connection */}
         <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6">
           <div className="flex justify-center">
-            <WalletMultiButton />
+            <WalletButton />
           </div>
         </div>
 
@@ -246,10 +329,10 @@ export default function StakingPage() {
               </div>
             </div>
 
-            {/* User Staking Overview */}
+            {/* User Yield Farming Overview */}
             {userStake && (
               <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6">
-                <h2 className="text-2xl font-bold mb-6">📊 Your Staking Overview</h2>
+                <h2 className="text-2xl font-bold mb-6">📊 Your Yield Farming Overview</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="bg-gray-50 rounded-xl p-6">
@@ -307,9 +390,9 @@ export default function StakingPage() {
               </div>
             )}
 
-            {/* Staking Form */}
+            {/* Yield Farming Form */}
             <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6">
-              <h2 className="text-2xl font-bold mb-6">🔒 Stake PYUSD</h2>
+              <h2 className="text-2xl font-bold mb-6">🔒 Stake PYUSD for Yield Farming</h2>
 
               <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
                 <div className="text-sm text-blue-800">
@@ -450,7 +533,7 @@ export default function StakingPage() {
 
             {/* Tier Information */}
             <div className="bg-white rounded-2xl shadow-2xl p-8">
-              <h2 className="text-2xl font-bold mb-6">🏅 Staking Tiers & Rewards</h2>
+              <h2 className="text-2xl font-bold mb-6">🏅 Yield Farming Tiers & Rewards</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl p-6">
@@ -483,9 +566,9 @@ export default function StakingPage() {
               </div>
 
               <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-                <h3 className="font-semibold mb-2">How Staking Works:</h3>
+                <h3 className="font-semibold mb-2">How Yield Farming Works:</h3>
                 <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
-                  <li>Choose your staking amount and lock period</li>
+                  <li>Choose your farming amount and lock period</li>
                   <li>Higher amounts unlock better tier rewards (Bronze to Diamond)</li>
                   <li>Longer lock periods provide bonus multipliers (up to 2.5x)</li>
                   <li>Rewards are calculated and distributed continuously</li>
