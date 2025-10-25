@@ -1,83 +1,18 @@
-// Inject the page-level Nexus bundle into the page so Nexus runs in the page context (wallets accessible).
+// Inject Nexus SDK bundle into page (like nexus-hyperliquid-poc)
 function injectNexusBundle() {
   try {
-    // During development we serve a UMD build from the Next dev server.
-    // Expose it to the page as a global so the page initializer (`nexus-init`) can load it.
-    // Avoid injecting inline scripts (Gmail CSP blocks inline); instead inject
-    // a small external config script from the extension that sets the UMD URL.
-    try {
-      const cfgSrc = chrome.runtime.getURL('injected/nexus-config.js');
-      if (!document.querySelector(`script[src="${cfgSrc}"]`)) {
-        const cfgScript = document.createElement('script');
-        cfgScript.src = cfgSrc;
-        cfgScript.async = true;
-        (document.documentElement || document.head || document.body).appendChild(cfgScript);
-        console.debug('[Mail-Fi] injected nexus-config.js into page');
-      }
-    } catch (e) {
-      console.debug('[Mail-Fi] failed to inject nexus-config.js', e);
-    }
-    // Also request background to set the variable in page context as a fallback
-    try {
-      const devUmd = 'http://localhost:3000/nexus-umd.js';
-      chrome.runtime.sendMessage({ type: 'ENSURE_NEXUS_CONFIG', url: devUmd }, (resp) => {
-        if (!resp || resp.ok !== true) {
-          console.debug('[Mail-Fi] background ENSURE_NEXUS_CONFIG failed', resp);
-        } else {
-          console.debug('[Mail-Fi] background ENSURE_NEXUS_CONFIG executed');
-        }
-      });
-    } catch (e) {
-      // ignore
-    }
-
-    // Prefer prebuilt POC bundle if present in extension; fallback to nexus-init loader
-    const preferred = chrome.runtime.getURL('injected/nexus-ca.js');
-    const fallback = chrome.runtime.getURL('injected/nexus-init.js');
-
-    if (!document.querySelector(`script[src="${preferred}"]`)) {
+    // Inject the full Nexus SDK React app
+    const nexusScript = chrome.runtime.getURL('injected/nexus-ca.js');
+    
+    if (!document.querySelector(`script[src="${nexusScript}"]`)) {
       const s = document.createElement('script');
-      s.src = preferred;
+      s.src = nexusScript;
       s.async = true;
       (document.documentElement || document.head || document.body).appendChild(s);
-      console.debug('[Mail-Fi] injected nexus-ca.js into page');
-      // Also inject the small messaging bridge that listens for MAILFI_OPEN_TRANSFER
-      try {
-        const bridge = chrome.runtime.getURL('injected/nexus-messaging-bridge.js');
-        if (!document.querySelector(`script[src="${bridge}"]`)) {
-          const b = document.createElement('script');
-          b.src = bridge;
-          b.async = true;
-          (document.documentElement || document.head || document.body).appendChild(b);
-          console.debug('[Mail-Fi] injected nexus-messaging-bridge.js into page');
-        }
-      } catch (e) {
-        console.debug('[Mail-Fi] failed to inject nexus messaging bridge', e);
-      }
-      return;
-    }
-
-    if (!document.querySelector(`script[src="${fallback}"]`)) {
-      const s = document.createElement('script');
-      s.src = fallback;
-      s.async = true;
-      (document.documentElement || document.head || document.body).appendChild(s);
-      console.debug('[Mail-Fi] injected nexus-init.js into page');
-      try {
-        const bridge = chrome.runtime.getURL('injected/nexus-messaging-bridge.js');
-        if (!document.querySelector(`script[src="${bridge}"]`)) {
-          const b = document.createElement('script');
-          b.src = bridge;
-          b.async = true;
-          (document.documentElement || document.head || document.body).appendChild(b);
-          console.debug('[Mail-Fi] injected nexus-messaging-bridge.js into page');
-        }
-      } catch (e) {
-        console.debug('[Mail-Fi] failed to inject nexus messaging bridge', e);
-      }
+      console.log('[Mail-Fi] Injected nexus-ca.js into page');
     }
   } catch (e) {
-    console.warn('[Mail-Fi] failed to inject nexus bundle into page', e);
+    console.error('[Mail-Fi] Failed to inject Nexus SDK:', e);
   }
 }
 
@@ -143,45 +78,103 @@ function injectComposeButton(composeWindow: Element) {
 
   const btn = document.createElement('button');
   btn.className = 'mailfi-compose-btn';
-  // start disabled until bridge reports Nexus ready
-  btn.disabled = true;
-  btn.title = 'Nexus loading…';
-  btn.setAttribute('aria-label', 'Pay with Avail');
+  // Button is enabled - payment happens in popup window
+  btn.disabled = false;
+  btn.title = 'Pay 0.001 USDC with Avail - Opens payment window';
+  btn.setAttribute('aria-label', 'Pay 0.001 USDC with Avail');
   btn.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
-    </svg>
-    <span style="margin-left: 4px;">Pay with Avail</span>
+    <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+      </svg>
+      <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+        <span style="font-size: 11px; opacity: 0.9;">Pay with Avail</span>
+        <span style="font-size: 14px; font-weight: 700;">0.001 USDC</span>
+      </div>
+    </div>
   `;
 
   btn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Ensure the Nexus bundle is injected into the page before sending message
-    injectNexusBundle();
-
-    // Try to extract recipient from compose "To" field
-    const toField = composeWindow.querySelector('input[name="to"]') as HTMLInputElement;
-    const recipient = toField?.value || '';
-
-    // Prompt for optional prefill amount/token (simple fast-path UI)
-    let amount: string | null = null;
-    let token: string | null = null;
+    // Extract wallet address from Gmail's "To" field (where email addresses go)
+    let recipientAddress = '';
+    
     try {
-      amount = window.prompt?.('Amount to send (optional)', '') || null;
-      token = window.prompt?.('Token (e.g. AVAIL, USDC) (optional)', '') || null;
-    } catch (e) {
-      // ignore
+      // Try multiple selectors for Gmail's "To" field
+      const toField = composeWindow.querySelector('input[name="to"]') as HTMLInputElement;
+      const toSpans = composeWindow.querySelectorAll('span[email]');
+      const toInputs = composeWindow.querySelectorAll('input[type="text"]');
+      
+      if (toField?.value) {
+        recipientAddress = toField.value.trim();
+      } else if (toSpans.length > 0) {
+        recipientAddress = toSpans[0].getAttribute('email') || '';
+      } else if (toInputs.length > 0) {
+        // Check all text inputs for 0x addresses
+        for (const input of toInputs) {
+          const value = (input as HTMLInputElement).value?.trim();
+          if (value && value.startsWith('0x') && value.length === 42) {
+            recipientAddress = value;
+            break;
+          }
+        }
+      }
+      
+      console.log('[Mail-Fi] Extracted from To field:', recipientAddress);
+    } catch (err) {
+      console.warn('[Mail-Fi] Failed to extract recipient:', err);
     }
 
-    // Correlation id so we can map completion back to this compose window
-    const correlationId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const options = { recipient: recipient || undefined, amount, token, correlationId };
-    pendingTransfers.set(correlationId, { composeWindow, options });
+    // Validate it's an Ethereum address
+    if (!recipientAddress || !recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
+      alert('Please enter a valid Ethereum wallet address (0x...) in the "To" field\n\nExample: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb');
+      return;
+    }
 
-    // Post a window-level message the injected bundle can handle
-    dispatchOpenTransferWithOptions(options);
+    const correlationId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    pendingTransfers.set(correlationId, { 
+      composeWindow, 
+      options: { 
+        correlationId,
+        recipient: recipientAddress,
+        amount: '0.001',
+        token: 'USDC'
+      } 
+    });
+
+    console.log('[Mail-Fi] Opening payment for:', recipientAddress);
+
+    // Open Nexus payment window with TransferButton widget
+    const params = new URLSearchParams({
+      recipient: recipientAddress,
+      amount: '0.001',
+      token: 'USDC',
+      chainId: '11155420',
+      correlationId
+    });
+
+    const paymentUrl = `http://localhost:3000/nexus-panel?${params.toString()}`;
+    
+    const popup = window.open(
+      paymentUrl,
+      'MailFiPayment',
+      'width=500,height=700,menubar=no,toolbar=no,location=no'
+    );
+
+    if (!popup) {
+      alert('Please allow popups for Gmail');
+      return;
+    }
+
+    // Monitor popup and handle completion
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed);
+        console.log('[Mail-Fi] Payment window closed');
+      }
+    }, 500);
   });
 
   // Insert before the last item (usually "More options" or trash)
@@ -201,27 +194,8 @@ function injectComposeButton(composeWindow: Element) {
   }
 }
 
-// Enable any Mail-Fi compose buttons when Nexus is ready
-function enableComposeButtonsWhenReady() {
-  window.addEventListener('message', (ev) => {
-    try {
-      if (!ev || !ev.data || ev.source !== window) return;
-      const d = ev.data;
-      if (d.type === 'MAILFI_NEXUS_READY') {
-        const ready = !!d.ready;
-        const buttons = document.querySelectorAll('.mailfi-compose-btn');
-        buttons.forEach((b) => {
-          try {
-            (b as HTMLButtonElement).disabled = !ready;
-            (b as HTMLButtonElement).title = ready ? 'Pay with Avail' : 'Nexus loading…';
-          } catch (e) {}
-        });
-      }
-    } catch (e) {
-      // ignore
-    }
-  });
-}
+// Note: Button is always enabled since payment happens in popup window
+// The popup window handles Nexus SDK initialization and wallet connection
 
 function observeComposeWindows() {
   const observer = new MutationObserver(() => {
@@ -243,17 +217,31 @@ function observeComposeWindows() {
 
 (function init() {
   if (!/mail\.google\.com/.test(location.host)) return;
-  // Inject the Nexus bundle into the page immediately so it's available to any compose button
+  
+  console.log('[Mail-Fi] Initializing Gmail integration');
+  
+  // Inject the Nexus payment system into the page
   injectNexusBundle();
+  
+  // Observe and inject payment buttons into compose windows
   observeComposeWindows();
-  // Wire up readiness -> enable buttons
-  enableComposeButtonsWhenReady();
-  // Listen for completion events posted by the in-page bridge and insert snippets
+  // Listen for payment success from popup window
   window.addEventListener('message', (ev) => {
     try {
-      if (!ev || !ev.data || ev.source !== window) return;
+      if (!ev || !ev.data) return;
       const d = ev.data;
-      if (d.type === 'MAILFI_TRANSFER_COMPLETE') {
+      
+      if (d.type === 'MAILFI_PAYMENT_SUCCESS') {
+        console.log('[Mail-Fi] Payment successful:', d.data);
+        
+        // Find the compose window and insert payment snippet
+        for (const [correlationId, entry] of pendingTransfers.entries()) {
+          const payload = d.data || {};
+          insertPaymentSnippet(entry.composeWindow, payload, entry.options);
+          pendingTransfers.delete(correlationId);
+          break; // Only insert once
+        }
+      } else if (d.type === 'MAILFI_TRANSFER_COMPLETE') {
         const correlationId = d.correlationId;
         const payload = d.data || {};
         if (!correlationId) return;
@@ -264,9 +252,6 @@ function observeComposeWindows() {
         }
       } else if (d.type === 'MAILFI_TRANSFER_ERROR') {
         console.warn('[Mail-Fi] transfer error', d.error, d.correlationId);
-      } else if (d.type === 'MAILFI_TRANSFER_STARTED') {
-        // Could show a temporary UI indicator in the compose; for now log it
-        console.debug('[Mail-Fi] transfer started', d.correlationId);
       }
     } catch (e) {
       console.debug('[Mail-Fi] message handler error', e);

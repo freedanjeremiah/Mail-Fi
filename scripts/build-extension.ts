@@ -52,21 +52,12 @@ async function run() {
   } else {
     await ctx.rebuild();
     await ctx.dispose();
-    // Copy prebuilt injected bundle from extension/injected (nexus-ca.js) if present
+    // Copy prebuilt Nexus CA bundle from nexus-hyperliquid-poc
     try {
       cpSync(resolve(root, "extension", "injected", "nexus-ca.js"), resolve(outdir, "injected", "nexus-ca.js"));
+      console.log("Copied nexus-ca.js");
     } catch (err) {
-      // ignore if not present
-    }
-    try {
-      cpSync(resolve(root, "extension", "injected", "nexus-messaging-bridge.js"), resolve(outdir, "injected", "nexus-messaging-bridge.js"));
-    } catch (err) {
-      // ignore if not present
-    }
-    try {
-      cpSync(resolve(root, "extension", "injected", "nexus-config.js"), resolve(outdir, "injected", "nexus-config.js"));
-    } catch (err) {
-      // ignore if not present
+      console.warn("nexus-ca.js not found, skipping");
     }
     console.log("Built extension to dist/extension");
   }

@@ -19,76 +19,129 @@ function WalletBridge() {
   return null;
 }
 
-export default function NexusPanelPage() {
-  const [amount, setAmount] = React.useState("");
-  const [recipient, setRecipient] = React.useState<string | null>(null);
+function NexusPanelContent() {
+  const [recipient, setRecipient] = React.useState<string>('');
+  const [amount, setAmount] = React.useState<string>('0.001');
+  const [autoOpen, setAutoOpen] = React.useState(false);
   const transferOpenRef = React.useRef<(() => void) | null>(null);
 
   React.useEffect(() => {
-    const handler = (ev: MessageEvent) => {
-      if (ev?.data?.type === 'SET_RECIPIENT' && ev.data.recipient) {
-        setRecipient(ev.data.recipient as string);
-        return;
-      }
-
-      // New message type: open the panel and prefill the transfer modal
-      if (ev?.data?.type === 'OPEN_PANEL_AND_PREFILL') {
-        const r = ev.data.recipient as string | undefined;
-        const a = ev.data.amount as string | number | undefined;
-        if (r && /^0x[0-9a-fA-F]{40}$/.test(r)) {
-          setRecipient(r);
-        }
-        if (a !== undefined && a !== null) {
-          setAmount(String(a));
-        }
-        // Give React a tick to apply state, then trigger the TransferButton
-        setTimeout(() => {
-          try {
-            transferOpenRef.current?.();
-          } catch (e) {
-            // swallow any errors from attempting to open
-          }
-        }, 50);
-      }
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
+    // Get params from URL
+    const params = new URLSearchParams(window.location.search);
+    const recipientParam = params.get('recipient');
+    const amountParam = params.get('amount');
+    
+    if (recipientParam && /^0x[0-9a-fA-F]{40}$/.test(recipientParam)) {
+      setRecipient(recipientParam);
+    }
+    
+    if (amountParam) {
+      setAmount(amountParam);
+    }
+    
+    // Auto-open transfer modal if params provided
+    if (recipientParam && amountParam) {
+      setAutoOpen(true);
+      // Trigger after component mounts
+      setTimeout(() => {
+        transferOpenRef.current?.();
+      }, 500);
+    }
   }, []);
+  
   return (
-    <NexusProvider config={{ network: "testnet", debug: false }}>
-      <WalletBridge />
-      <div style={{ padding: 16, fontFamily: "ui-sans-serif, system-ui", width: 360 }}>
-        <h3 style={{ marginTop: 0 }}>Nexus Transfer</h3>
-        <input
-          placeholder="Amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          style={{ marginBottom: 8 }}
-        />
-        <div style={{ marginBottom: 8, fontSize: 13, color: '#374151' }}>
-          {recipient ? <span>Prefilled recipient: <strong>{recipient}</strong></span> : <span>No recipient prefilled</span>}
+    <div style={{ 
+      padding: 24, 
+      fontFamily: "system-ui, -apple-system, sans-serif", 
+      maxWidth: 500,
+      margin: '0 auto'
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+        color: 'white',
+        padding: 20,
+        borderRadius: 12,
+        marginBottom: 24,
+        textAlign: 'center'
+      }}>
+        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Pay with Avail</h2>
+        <p style={{ margin: '8px 0 0 0', fontSize: 14, opacity: 0.9 }}>Cross-chain USDC payment</p>
+      </div>
+
+      {recipient && (
+        <div style={{
+          background: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          borderRadius: 8,
+          padding: 16,
+          marginBottom: 20
+        }}>
+          <p style={{ margin: 0, fontSize: 12, color: '#1e40af', fontWeight: 600, marginBottom: 6 }}>
+            SENDING TO
+          </p>
+          <p style={{ margin: 0, fontSize: 14, fontFamily: 'monospace', color: '#3b82f6', wordBreak: 'break-all' }}>
+            {recipient}
+          </p>
         </div>
-        {
-          // Ensure recipient matches simple 0x hex address pattern before casting to the SDK's typed address shape
-        }
-        <TransferButton
-          prefill={{
-            amount: amount || undefined,
-            recipient: (recipient && /^0x[0-9a-fA-F]{40}$/.test(recipient)
-              ? (recipient as `0x${string}`)
-              : undefined),
-          }}
-        >
-          {({ onClick, isLoading }) => {
-            // expose the onClick so external code (postMessage) can open the Transfer modal
-            transferOpenRef.current = onClick;
-            return (
-              <button onClick={onClick} disabled={isLoading}>
-                {isLoading ? "Processing…" : "Open Nexus Transfer"}
-              </button>
-            );
-          }}
-        </TransferButton>
+      )}
+
+      <div style={{
+        background: '#f9fafb',
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 20,
+        textAlign: 'center'
+      }}>
+        <p style={{ margin: 0, fontSize: 12, color: '#6b7280', marginBottom: 8 }}>Amount</p>
+        <p style={{ margin: 0, fontSize: 36, fontWeight: 700, color: '#111827' }}>{amount}</p>
+        <p style={{ margin: '4px 0 0 0', fontSize: 16, fontWeight: 600, color: '#7c3aed' }}>USDC</p>
+        <p style={{ margin: '8px 0 0 0', fontSize: 12, color: '#6b7280' }}>on Optimism Sepolia</p>
+      </div>
+
+      <TransferButton
+        prefill={{
+          chainId: 11155420,
+          token: 'USDC',
+          amount: amount || undefined,
+          recipient: (recipient && /^0x[0-9a-fA-F]{40}$/.test(recipient)
+            ? (recipient as `0x${string}`)
+            : undefined),
+        }}
+        onSuccess={(result: any) => {
+          console.log('[Mail-Fi] Transfer success:', result);
+          if (window.opener) {
+            window.opener.postMessage({
+              type: 'MAILFI_PAYMENT_SUCCESS',
+              data: result
+            }, '*');
+            setTimeout(() => window.close(), 2000);
+          }
+        }}
+      >
+        {({ onClick, isLoading }) => {
+          transferOpenRef.current = onClick;
+          return (
+            <button 
+              onClick={onClick} 
+              disabled={isLoading || !recipient}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: isLoading ? '#9ca3af' : 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 16,
+                fontWeight: 600,
+                cursor: isLoading || !recipient ? 'not-allowed' : 'pointer',
+                opacity: isLoading || !recipient ? 0.6 : 1
+              }}
+            >
+              {isLoading ? "Processing…" : "Send Payment"}
+            </button>
+          );
+        }}
+      </TransferButton>
         <hr style={{ margin: "12px 0" }} />
 
         <div style={{ marginBottom: 8 }}>
@@ -155,6 +208,16 @@ export default function NexusPanelPage() {
           </BridgeAndExecuteButton>
         </div>
       </div>
+  );
+}
+
+export default function NexusPanelPage() {
+  return (
+    <NexusProvider config={{ network: "testnet", debug: false }}>
+      <WalletBridge />
+      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+        <NexusPanelContent />
+      </React.Suspense>
     </NexusProvider>
   );
 }

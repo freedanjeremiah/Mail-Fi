@@ -25,15 +25,9 @@
     {
       "resources": ["ui/panel.html", "ui/panel.js", "ui/panel.css"],
       "matches": ["https://mail.google.com/*"]
-    }
-    ,
+    },
     {
-      "resources": ["injected/nexus-init.js"],
-      "matches": ["https://mail.google.com/*"]
-    }
-    ,
-    {
-      "resources": ["injected/nexus-ca.js", "injected/nexus-messaging-bridge.js", "injected/nexus-config.js"],
+      "resources": ["injected/nexus-ca.js"],
       "matches": ["https://mail.google.com/*"]
     }
   ]
