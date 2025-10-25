@@ -80,8 +80,8 @@ function injectComposeButton(composeWindow: Element) {
   btn.className = 'mailfi-compose-btn';
   // Button is enabled - payment happens in popup window
   btn.disabled = false;
-  btn.title = 'Pay 0.001 USDC with Avail - Opens payment window';
-  btn.setAttribute('aria-label', 'Pay 0.001 USDC with Avail');
+  btn.title = 'Pay with Avail - Opens payment window';
+  btn.setAttribute('aria-label', 'Pay with Avail');
   btn.innerHTML = `
     <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
@@ -89,7 +89,7 @@ function injectComposeButton(composeWindow: Element) {
       </svg>
       <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
         <span style="font-size: 11px; opacity: 0.9;">Pay with Avail</span>
-        <span style="font-size: 14px; font-weight: 700;">0.001 USDC</span>
+        <span style="font-size: 14px; font-weight: 700;">USDC</span>
       </div>
     </div>
   `;
@@ -100,6 +100,7 @@ function injectComposeButton(composeWindow: Element) {
 
     // Extract wallet address from Gmail's "To" field (where email addresses go)
     let recipientAddress = '';
+    let amount = '0.001'; // Default amount
     
     try {
       // Try multiple selectors for Gmail's "To" field
@@ -127,6 +128,24 @@ function injectComposeButton(composeWindow: Element) {
       console.warn('[Mail-Fi] Failed to extract recipient:', err);
     }
 
+    // Extract amount from subject line
+    try {
+      const subjectField = composeWindow.querySelector('input[name="subjectbox"]') as HTMLInputElement;
+      if (subjectField?.value) {
+        const subject = subjectField.value.trim();
+        console.log('[Mail-Fi] Subject line:', subject);
+        
+        // Look for amount pattern like "0.01 USDC" or "0.01" or "1.5 USDC"
+        const amountMatch = subject.match(/(\d+\.?\d*)\s*(?:USDC)?/i);
+        if (amountMatch) {
+          amount = amountMatch[1];
+          console.log('[Mail-Fi] Extracted amount from subject:', amount);
+        }
+      }
+    } catch (err) {
+      console.warn('[Mail-Fi] Failed to extract amount from subject:', err);
+    }
+
     // Validate it's an Ethereum address
     if (!recipientAddress || !recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
       alert('Please enter a valid Ethereum wallet address (0x...) in the "To" field\n\nExample: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb');
@@ -139,17 +158,17 @@ function injectComposeButton(composeWindow: Element) {
       options: { 
         correlationId,
         recipient: recipientAddress,
-        amount: '0.001',
+        amount: amount,
         token: 'USDC'
       } 
     });
 
-    console.log('[Mail-Fi] Opening payment for:', recipientAddress);
+    console.log('[Mail-Fi] Opening payment for:', recipientAddress, 'Amount:', amount);
 
     // Open Nexus payment window with TransferButton widget
     const params = new URLSearchParams({
       recipient: recipientAddress,
-      amount: '0.001',
+      amount: amount,
       token: 'USDC',
       chainId: '11155420',
       correlationId

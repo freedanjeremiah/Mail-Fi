@@ -67,13 +67,14 @@ chrome://extensions → Enable "Developer mode" → "Load unpacked" → Select d
 ### How It Works
 
 1. **Put wallet address in "To" field**: `0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb`
-2. **Click button**: "Pay 0.001 USDC with Avail"
-3. **Payment window opens**: Shows recipient & amount
-4. **Connect wallet**: MetaMask connection
-5. **Click "Send Payment"**: Triggers Nexus TransferButton widget
-6. **Nexus modal appears**: Intent approval UI
-7. **Sign in MetaMask**: Transaction signature
-8. **Done**: Payment complete, snippet inserted in email
+2. **Put amount in "Subject" field**: `0.01 USDC` (or just `0.01`)
+3. **Click button**: "Pay with Avail"
+4. **Payment window opens**: Shows recipient & extracted amount
+5. **Connect wallet**: MetaMask connection
+6. **Click "Send Payment"**: Triggers Nexus TransferButton widget
+7. **Nexus modal appears**: Intent approval UI
+8. **Sign in MetaMask**: Transaction signature
+9. **Done**: Payment complete, snippet inserted in email
 
 ### Tech Stack
 
@@ -100,11 +101,17 @@ To: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
 ```
 (Replace the email address with the recipient's Ethereum wallet address)
 
-**4. Click "Pay 0.001 USDC with Avail" button:**
+**4. Enter amount in Gmail's "Subject" field:**
+```
+Subject: 0.01 USDC
+```
+(Or just "0.01" - the extension will extract the amount)
+
+**5. Click "Pay with Avail" button:**
 - Payment window opens (500x700)
 - Shows recipient address and amount
 
-**5. Connect wallet & pay:**
+**6. Connect wallet & pay:**
 - Click "Connect Wallet" button
 - Choose MetaMask
 - Switch to Optimism Sepolia if prompted
@@ -114,7 +121,7 @@ To: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
 - Sign in MetaMask
 - Done!
 
-**6. Payment snippet inserted in email:**
+**7. Payment snippet inserted in email:**
 ```
 Paid 0.001 USDC via Avail. Transaction: 0xabc123...
 ```
