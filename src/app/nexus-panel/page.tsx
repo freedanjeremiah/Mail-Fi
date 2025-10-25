@@ -113,10 +113,20 @@ function NexusPanelContent() {
         }}
         onSuccess={(result: any) => {
           console.log('[Mail-Fi] Transfer success:', result);
+          
+          // Extract transaction details for email snippet
+          const transactionData = {
+            txHash: result?.txHash || result?.transactionHash || result?.hash,
+            intentId: result?.intentId || result?.intent?.id,
+            explorerUrl: result?.explorerUrl || result?.intent?.explorerUrl,
+            status: 'completed',
+            timestamp: new Date().toISOString()
+          };
+          
           if (window.opener) {
             window.opener.postMessage({
               type: 'MAILFI_PAYMENT_SUCCESS',
-              data: result
+              data: transactionData
             }, '*');
             setTimeout(() => window.close(), 2000);
           }

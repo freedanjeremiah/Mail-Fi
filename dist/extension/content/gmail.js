@@ -1760,30 +1760,87 @@ var pendingTransfers = /* @__PURE__ */ new Map();
 function insertPaymentSnippet(composeWindow, payload, options) {
   try {
     const body = composeWindow.querySelector('[aria-label="Message Body"], [role="textbox"][contenteditable="true"]');
-    const amount = options?.amount || payload?.amount || "";
-    const token = options?.token || payload?.token || "";
-    const txHash = payload?.txHash || payload?.transactionHash || payload?.txid || null;
-    const intentUrl = payload?.intentUrl || null;
-    let snippet = "";
-    if (txHash) {
-      snippet = `Paid ${amount || ""} ${token || ""} via Avail. Transaction: ${txHash}`;
-    } else if (intentUrl) {
-      snippet = `Paid ${amount || ""} ${token || ""} via Avail. Details: ${intentUrl}`;
-    } else {
-      snippet = `Paid ${amount || ""} ${token || ""} via Avail.`.trim();
-    }
     if (!body) {
       console.warn("[Mail-Fi] compose body not found to insert payment snippet");
       return;
     }
-    body.focus();
-    try {
-      document.execCommand("insertText", false, "\n" + snippet + "\n");
-    } catch (e) {
-      const wrapper = document.createElement("div");
-      wrapper.textContent = snippet;
-      body.appendChild(wrapper);
-    }
+    const amount = options?.amount || payload?.amount || "";
+    const token = options?.token || payload?.token || "USDC";
+    const txHash = payload?.txHash || payload?.transactionHash || payload?.txid || null;
+    const intentId = payload?.intentId || payload?.intent?.id || null;
+    const explorerUrl = payload?.explorerUrl || payload?.intent?.explorerUrl || null;
+    const recipient = options?.recipient || "";
+    const urlParams = new URLSearchParams(window.location.search);
+    const destinationChain = urlParams.get("destinationChain") || "optimism";
+    const snippet = document.createElement("div");
+    snippet.style.cssText = `
+      margin: 16px 0;
+      padding: 16px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid #0ea5e9;
+      border-radius: 12px;
+      font-family: system-ui, -apple-system, sans-serif;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      max-width: 600px;
+    `;
+    snippet.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <span style="font-size: 20px;">\u{1F389}</span>
+        <strong style="color: #0369a1; font-size: 16px;">Payment Completed via Avail Nexus</strong>
+      </div>
+      
+      <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e5e7eb;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
+          <div><strong style="color: #374151;">Amount:</strong> <span style="color: #059669;">${amount} ${token}</span></div>
+          <div><strong style="color: #374151;">Destination:</strong> <span style="color: #7c3aed;">${destinationChain === "arbitrum" ? "Arbitrum Sepolia" : "Optimism Sepolia"}</span></div>
+          <div><strong style="color: #374151;">Recipient:</strong> <span style="font-family: monospace; color: #6b7280;">${recipient.slice(0, 6)}...${recipient.slice(-4)}</span></div>
+          <div><strong style="color: #374151;">Status:</strong> <span style="color: #059669; font-weight: 600;">\u2705 Completed</span></div>
+        </div>
+      </div>
+      
+      ${txHash ? `
+      <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 6px;"><strong>Transaction Hash:</strong></div>
+        <div style="font-family: monospace; font-size: 12px; color: #475569; word-break: break-all; margin-bottom: 8px;">
+          ${txHash}
+        </div>
+        <div>
+          <a href="https://sepolia.optimism.io/tx/${txHash}" target="_blank" style="color: #0ea5e9; text-decoration: none; font-size: 13px; font-weight: 500; margin-right: 12px;">
+            \u{1F517} View on Optimism Explorer
+          </a>
+          ${destinationChain === "arbitrum" ? `
+          <a href="https://sepolia.arbiscan.io/tx/${txHash}" target="_blank" style="color: #8b5cf6; text-decoration: none; font-size: 13px; font-weight: 500;">
+            \u{1F517} View on Arbitrum Explorer
+          </a>
+          ` : ""}
+        </div>
+      </div>
+      ` : ""}
+      
+      ${intentId ? `
+      <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 6px;"><strong>Avail Nexus Intent ID:</strong></div>
+        <div style="font-family: monospace; font-size: 12px; color: #475569; word-break: break-all; margin-bottom: 8px;">
+          ${intentId}
+        </div>
+        ${explorerUrl ? `
+        <div>
+          <a href="${explorerUrl}" target="_blank" style="color: #8b5cf6; text-decoration: none; font-size: 13px; font-weight: 500;">
+            \u{1F517} View on Avail Explorer
+          </a>
+        </div>
+        ` : ""}
+      </div>
+      ` : ""}
+      
+      <div style="margin-top: 12px; padding: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 12px; color: #166534;">
+        <strong>\u{1F4A1} Powered by Avail Nexus</strong> - Cross-chain USDC bridging made simple
+      </div>
+    `;
+    body.appendChild(snippet);
+    const spacer = document.createElement("div");
+    spacer.style.cssText = "height: 16px;";
+    body.appendChild(spacer);
   } catch (e) {
     console.error("[Mail-Fi] failed to insert payment snippet", e);
   }
@@ -1944,6 +2001,7 @@ function observeComposeWindows() {
         console.log("[Mail-Fi] Payment successful:", d.data);
         for (const [correlationId, entry] of pendingTransfers.entries()) {
           const payload = d.data || {};
+          console.log("[Mail-Fi] Inserting payment snippet with data:", payload);
           insertPaymentSnippet(entry.composeWindow, payload, entry.options);
           pendingTransfers.delete(correlationId);
           break;
