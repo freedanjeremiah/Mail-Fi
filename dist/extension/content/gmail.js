@@ -1933,7 +1933,25 @@ function injectComposeButton(composeWindow) {
   btn.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    let recipientAddress = "";
+    const target = e.target;
+    if (target.classList.contains("mailfi-disconnect-btn") || target.closest(".mailfi-disconnect-btn")) {
+      console.log("[Mail-Fi] Disconnecting wallet...");
+      btn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+          </svg>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+            <span style="font-size: 11px; opacity: 0.9;">Pay with Avail</span>
+            <span style="font-size: 14px; font-weight: 700;">USDC</span>
+          </div>
+        </div>
+      `;
+      btn.disabled = false;
+      btn.title = "Pay with Avail - Opens payment window";
+      return;
+    }
+    let recipientAddress = null;
     let recipientEmail = "";
     let amount = "0.001";
     try {
@@ -1976,10 +1994,17 @@ function injectComposeButton(composeWindow) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
             </svg>
-            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; flex: 1;">
               <span style="font-size: 11px; opacity: 0.9;">Wallet found \u2713</span>
               <span style="font-size: 14px; font-weight: 700;">${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}</span>
             </div>
+            <button 
+              class="mailfi-disconnect-btn"
+              style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; color: white; padding: 2px 6px; font-size: 10px; cursor: pointer; margin-left: 4px;"
+              title="Disconnect wallet"
+            >
+              \u2715
+            </button>
           </div>
         `;
         btn.disabled = false;
