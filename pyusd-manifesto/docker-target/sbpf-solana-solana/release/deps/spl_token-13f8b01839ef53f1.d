@@ -1,0 +1,12 @@
+/workdir/docker-target/sbpf-solana-solana/release/deps/spl_token-13f8b01839ef53f1.so: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/error.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/instruction.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/native_mint.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/processor.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/state.rs
+
+/workdir/docker-target/sbpf-solana-solana/release/deps/libspl_token-13f8b01839ef53f1.rlib: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/error.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/instruction.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/native_mint.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/processor.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/state.rs
+
+/workdir/docker-target/sbpf-solana-solana/release/deps/spl_token-13f8b01839ef53f1.d: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/error.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/instruction.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/native_mint.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/processor.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/state.rs
+
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/lib.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/error.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/instruction.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/native_mint.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/processor.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-token-8.0.0/src/state.rs:

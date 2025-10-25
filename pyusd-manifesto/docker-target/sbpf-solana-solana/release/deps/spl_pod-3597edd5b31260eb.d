@@ -1,0 +1,13 @@
+/workdir/docker-target/sbpf-solana-solana/release/deps/spl_pod-3597edd5b31260eb.so: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/bytemuck.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/error.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/option.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/optional_keys.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/primitives.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/slice.rs
+
+/workdir/docker-target/sbpf-solana-solana/release/deps/libspl_pod-3597edd5b31260eb.rlib: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/bytemuck.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/error.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/option.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/optional_keys.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/primitives.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/slice.rs
+
+/workdir/docker-target/sbpf-solana-solana/release/deps/spl_pod-3597edd5b31260eb.d: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/bytemuck.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/error.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/option.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/optional_keys.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/primitives.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/slice.rs
+
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/lib.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/bytemuck.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/error.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/option.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/optional_keys.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/primitives.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-pod-0.5.1/src/slice.rs:
