@@ -30,6 +30,8 @@ function NexusPanelContent() {
     const params = new URLSearchParams(window.location.search);
     const recipientParam = params.get('recipient');
     const amountParam = params.get('amount');
+    const chainIdParam = params.get('chainId');
+    const destinationChainParam = params.get('destinationChain');
     
     if (recipientParam && /^0x[0-9a-fA-F]{40}$/.test(recipientParam)) {
       setRecipient(recipientParam);
@@ -95,12 +97,14 @@ function NexusPanelContent() {
         <p style={{ margin: 0, fontSize: 12, color: '#6b7280', marginBottom: 8 }}>Amount</p>
         <p style={{ margin: 0, fontSize: 36, fontWeight: 700, color: '#111827' }}>{amount}</p>
         <p style={{ margin: '4px 0 0 0', fontSize: 16, fontWeight: 600, color: '#7c3aed' }}>USDC</p>
-        <p style={{ margin: '8px 0 0 0', fontSize: 12, color: '#6b7280' }}>on Optimism Sepolia</p>
+        <p style={{ margin: '8px 0 0 0', fontSize: 12, color: '#6b7280' }}>
+          on {new URLSearchParams(window.location.search).get('destinationChain') === 'arbitrum' ? 'Arbitrum Sepolia' : 'Optimism Sepolia'}
+        </p>
       </div>
 
       <TransferButton
         prefill={{
-          chainId: 11155420,
+          chainId: parseInt(new URLSearchParams(window.location.search).get('chainId') || '11155420'),
           token: 'USDC',
           amount: amount || undefined,
           recipient: (recipient && /^0x[0-9a-fA-F]{40}$/.test(recipient)

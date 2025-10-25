@@ -1836,6 +1836,8 @@ function injectComposeButton(composeWindow) {
     } catch (err) {
       console.warn("[Mail-Fi] Failed to extract recipient:", err);
     }
+    let destinationChain = "optimism";
+    let chainId = "11155420";
     try {
       const subjectField = composeWindow.querySelector('input[name="subjectbox"]');
       if (subjectField?.value) {
@@ -1846,9 +1848,18 @@ function injectComposeButton(composeWindow) {
           amount = amountMatch[1];
           console.log("[Mail-Fi] Extracted amount from subject:", amount);
         }
+        if (subject.toLowerCase().includes("arbitrum")) {
+          destinationChain = "arbitrum";
+          chainId = "421614";
+          console.log("[Mail-Fi] Destination: Arbitrum Sepolia");
+        } else if (subject.toLowerCase().includes("optimism")) {
+          destinationChain = "optimism";
+          chainId = "11155420";
+          console.log("[Mail-Fi] Destination: Optimism Sepolia");
+        }
       }
     } catch (err) {
-      console.warn("[Mail-Fi] Failed to extract amount from subject:", err);
+      console.warn("[Mail-Fi] Failed to extract from subject:", err);
     }
     if (!recipientAddress || !recipientAddress.startsWith("0x") || recipientAddress.length !== 42) {
       alert('Please enter a valid Ethereum wallet address (0x...) in the "To" field\n\nExample: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb');
@@ -1864,12 +1875,13 @@ function injectComposeButton(composeWindow) {
         token: "USDC"
       }
     });
-    console.log("[Mail-Fi] Opening payment for:", recipientAddress, "Amount:", amount);
+    console.log("[Mail-Fi] Opening payment for:", recipientAddress, "Amount:", amount, "Chain:", destinationChain, "ChainID:", chainId);
     const params = new URLSearchParams({
       recipient: recipientAddress,
       amount,
       token: "USDC",
-      chainId: "11155420",
+      chainId,
+      destinationChain,
       correlationId
     });
     const paymentUrl = `http://localhost:3000/nexus-panel?${params.toString()}`;

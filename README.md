@@ -67,9 +67,9 @@ chrome://extensions → Enable "Developer mode" → "Load unpacked" → Select d
 ### How It Works
 
 1. **Put wallet address in "To" field**: `0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb`
-2. **Put amount in "Subject" field**: `0.01 USDC` (or just `0.01`)
+2. **Put amount and destination in "Subject" field**: `0.01 USDC to Optimism Sepolia` or `1 USDC to Arbitrum Sepolia`
 3. **Click button**: "Pay with Avail"
-4. **Payment window opens**: Shows recipient & extracted amount
+4. **Payment window opens**: Shows recipient, amount, and destination chain
 5. **Connect wallet**: MetaMask connection
 6. **Click "Send Payment"**: Triggers Nexus TransferButton widget
 7. **Nexus modal appears**: Intent approval UI
@@ -101,11 +101,15 @@ To: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
 ```
 (Replace the email address with the recipient's Ethereum wallet address)
 
-**4. Enter amount in Gmail's "Subject" field:**
+**4. Enter amount and destination in Gmail's "Subject" field:**
 ```
-Subject: 0.01 USDC
+Subject: 0.01 USDC to Optimism Sepolia
 ```
-(Or just "0.01" - the extension will extract the amount)
+or
+```
+Subject: 1 USDC to Arbitrum Sepolia
+```
+(Extension extracts amount and destination chain)
 
 **5. Click "Pay with Avail" button:**
 - Payment window opens (500x700)

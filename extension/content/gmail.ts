@@ -128,7 +128,10 @@ function injectComposeButton(composeWindow: Element) {
       console.warn('[Mail-Fi] Failed to extract recipient:', err);
     }
 
-    // Extract amount from subject line
+    // Extract amount and destination chain from subject line
+    let destinationChain = 'optimism'; // Default to Optimism Sepolia
+    let chainId = '11155420'; // Optimism Sepolia chain ID
+    
     try {
       const subjectField = composeWindow.querySelector('input[name="subjectbox"]') as HTMLInputElement;
       if (subjectField?.value) {
@@ -141,9 +144,20 @@ function injectComposeButton(composeWindow: Element) {
           amount = amountMatch[1];
           console.log('[Mail-Fi] Extracted amount from subject:', amount);
         }
+        
+        // Look for destination chain in subject
+        if (subject.toLowerCase().includes('arbitrum')) {
+          destinationChain = 'arbitrum';
+          chainId = '421614'; // Arbitrum Sepolia chain ID
+          console.log('[Mail-Fi] Destination: Arbitrum Sepolia');
+        } else if (subject.toLowerCase().includes('optimism')) {
+          destinationChain = 'optimism';
+          chainId = '11155420'; // Optimism Sepolia chain ID
+          console.log('[Mail-Fi] Destination: Optimism Sepolia');
+        }
       }
     } catch (err) {
-      console.warn('[Mail-Fi] Failed to extract amount from subject:', err);
+      console.warn('[Mail-Fi] Failed to extract from subject:', err);
     }
 
     // Validate it's an Ethereum address
@@ -163,14 +177,15 @@ function injectComposeButton(composeWindow: Element) {
       } 
     });
 
-    console.log('[Mail-Fi] Opening payment for:', recipientAddress, 'Amount:', amount);
+    console.log('[Mail-Fi] Opening payment for:', recipientAddress, 'Amount:', amount, 'Chain:', destinationChain, 'ChainID:', chainId);
 
     // Open Nexus payment window with TransferButton widget
     const params = new URLSearchParams({
       recipient: recipientAddress,
       amount: amount,
       token: 'USDC',
-      chainId: '11155420',
+      chainId: chainId,
+      destinationChain: destinationChain,
       correlationId
     });
 
