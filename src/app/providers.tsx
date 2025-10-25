@@ -6,7 +6,7 @@ import { WagmiProvider, createConfig, http } from 'wagmi';
 import { mainnet, sepolia, base, arbitrum, arbitrumSepolia, optimism, optimismSepolia } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getDefaultConfig } from 'connectkit';
-import { MagicWalletProvider } from './components/magic-wallet-provider-simple';
+import { HybridWalletProvider } from './components/hybrid-wallet-provider';
 
 // Lazy-load NexusProvider to avoid server-side module evaluation of
 // `@avail-project/nexus-widgets` (it references browser-only APIs). This
@@ -127,7 +127,7 @@ const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <MagicWalletProvider>
+        <HybridWalletProvider>
       <WagmiProvider config={config} reconnectOnMount={false}>
         <QueryClientProvider client={queryClient}>
           <Suspense fallback={<>{children}</>}>
@@ -135,6 +135,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </Suspense>
         </QueryClientProvider>
       </WagmiProvider>
-    </MagicWalletProvider>
+        </HybridWalletProvider>
   );
 }

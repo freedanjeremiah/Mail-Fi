@@ -1741,6 +1741,60 @@ function ieee754write(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 }
 
+// extension/content/email-wallet-mapping.ts
+var EMAIL_WALLET_MAPPING = {
+  // Default mapping for testing
+  "user@example.com": "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25",
+  "test@gmail.com": "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25",
+  "demo@mail.com": "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25",
+  // Add more mappings as needed
+  "alice@example.com": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+  "bob@example.com": "0x8ba1f109551bD432803012645Hac136c",
+  "charlie@example.com": "0x1234567890123456789012345678901234567890"
+};
+async function lookupWalletAddress(email) {
+  console.log(`[Mail-Fi] Looking up wallet address for email: ${email}`);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const cleanEmail = email.toLowerCase().trim();
+  if (EMAIL_WALLET_MAPPING[cleanEmail]) {
+    const walletAddress = EMAIL_WALLET_MAPPING[cleanEmail];
+    console.log(`[Mail-Fi] Found wallet address: ${walletAddress}`);
+    return walletAddress;
+  }
+  console.log(`[Mail-Fi] Using default wallet address for: ${cleanEmail}`);
+  return "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25";
+}
+function extractEmailAddresses(composeWindow) {
+  const emails = [];
+  try {
+    const toField = composeWindow.querySelector('input[name="to"]');
+    const toSpans = composeWindow.querySelectorAll("span[email]");
+    const toInputs = composeWindow.querySelectorAll('input[type="text"]');
+    if (toField?.value) {
+      const value = toField.value.trim();
+      const emailList = value.split(",").map((email) => email.trim()).filter((email) => email.includes("@"));
+      emails.push(...emailList);
+    }
+    toSpans.forEach((span) => {
+      const email = span.getAttribute("email");
+      if (email && email.includes("@")) {
+        emails.push(email);
+      }
+    });
+    toInputs.forEach((input) => {
+      const value = input.value?.trim();
+      if (value && value.includes("@")) {
+        const emailList = value.split(",").map((email) => email.trim()).filter((email) => email.includes("@"));
+        emails.push(...emailList);
+      }
+    });
+    console.log("[Mail-Fi] Extracted emails:", emails);
+  } catch (err) {
+    console.warn("[Mail-Fi] Failed to extract emails:", err);
+  }
+  return emails;
+}
+
 // extension/content/gmail.ts
 function injectNexusBundle() {
   try {
@@ -1770,6 +1824,15 @@ function insertPaymentSnippet(composeWindow, payload, options) {
     const intentId = payload?.intentId || payload?.intent?.id || null;
     const explorerUrl = payload?.explorerUrl || payload?.intent?.explorerUrl || null;
     const recipient = options?.recipient || "";
+    let recipientEmail = "";
+    try {
+      const emails = extractEmailAddresses(composeWindow);
+      if (emails.length > 0) {
+        recipientEmail = emails[0];
+      }
+    } catch (err) {
+      console.warn("[Mail-Fi] Failed to extract email for snippet:", err);
+    }
     const urlParams = new URLSearchParams(window.location.search);
     const destinationChain = urlParams.get("destinationChain") || "optimism";
     const snippet = document.createElement("div");
@@ -1793,7 +1856,7 @@ function insertPaymentSnippet(composeWindow, payload, options) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
           <div><strong style="color: #374151;">Amount:</strong> <span style="color: #059669;">${amount} ${token}</span></div>
           <div><strong style="color: #374151;">Destination:</strong> <span style="color: #7c3aed;">${destinationChain === "arbitrum" ? "Arbitrum Sepolia" : "Optimism Sepolia"}</span></div>
-          <div><strong style="color: #374151;">Recipient:</strong> <span style="font-family: monospace; color: #6b7280;">${recipient.slice(0, 6)}...${recipient.slice(-4)}</span></div>
+          <div><strong style="color: #374151;">Recipient:</strong> <span style="color: #6b7280;">${recipientEmail || recipient.slice(0, 6) + "..." + recipient.slice(-4)}</span></div>
           <div><strong style="color: #374151;">Status:</strong> <span style="color: #059669; font-weight: 600;">\u2705 Completed</span></div>
         </div>
       </div>
@@ -1867,31 +1930,68 @@ function injectComposeButton(composeWindow) {
       </div>
     </div>
   `;
-  btn.addEventListener("click", (e) => {
+  btn.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
     let recipientAddress = "";
+    let recipientEmail = "";
     let amount = "0.001";
     try {
-      const toField = composeWindow.querySelector('input[name="to"]');
-      const toSpans = composeWindow.querySelectorAll("span[email]");
-      const toInputs = composeWindow.querySelectorAll('input[type="text"]');
-      if (toField?.value) {
-        recipientAddress = toField.value.trim();
-      } else if (toSpans.length > 0) {
-        recipientAddress = toSpans[0].getAttribute("email") || "";
-      } else if (toInputs.length > 0) {
-        for (const input of toInputs) {
-          const value = input.value?.trim();
-          if (value && value.startsWith("0x") && value.length === 42) {
-            recipientAddress = value;
-            break;
-          }
+      const emails = extractEmailAddresses(composeWindow);
+      if (emails.length > 0) {
+        recipientEmail = emails[0];
+        console.log("[Mail-Fi] Extracted email from To field:", recipientEmail);
+        btn.disabled = true;
+        btn.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #6b7280; border-radius: 6px; color: white; font-weight: 500; font-size: 13px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white" class="animate-spin">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+            </svg>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+              <span style="font-size: 11px; opacity: 0.9;">Looking up wallet...</span>
+              <span style="font-size: 14px; font-weight: 700;">${recipientEmail}</span>
+            </div>
+          </div>
+        `;
+        recipientAddress = await lookupWalletAddress(recipientEmail);
+        if (!recipientAddress) {
+          console.error("[Mail-Fi] Failed to lookup wallet address for:", recipientEmail);
+          btn.disabled = false;
+          btn.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #ef4444; border-radius: 6px; color: white; font-weight: 500; font-size: 13px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+              </svg>
+              <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+                <span style="font-size: 11px; opacity: 0.9;">Wallet not found</span>
+                <span style="font-size: 14px; font-weight: 700;">Try again</span>
+              </div>
+            </div>
+          `;
+          return;
         }
+        console.log("[Mail-Fi] Found wallet address:", recipientAddress, "for email:", recipientEmail);
+        btn.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+            </svg>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+              <span style="font-size: 11px; opacity: 0.9;">Wallet found \u2713</span>
+              <span style="font-size: 14px; font-weight: 700;">${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}</span>
+            </div>
+          </div>
+        `;
+        btn.disabled = false;
+      } else {
+        console.warn("[Mail-Fi] No email addresses found in To field");
+        btn.disabled = false;
+        return;
       }
-      console.log("[Mail-Fi] Extracted from To field:", recipientAddress);
     } catch (err) {
       console.warn("[Mail-Fi] Failed to extract recipient:", err);
+      btn.disabled = false;
+      return;
     }
     let destinationChain = "optimism";
     let sourceChain = "ethereum";

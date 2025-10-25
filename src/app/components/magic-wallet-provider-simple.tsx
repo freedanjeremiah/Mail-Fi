@@ -45,7 +45,7 @@ export function MagicWalletProvider({ children }: MagicWalletProviderProps) {
         // Dynamic import to avoid SSR issues
         console.log('[Magic] Starting Magic SDK initialization...');
         const { Magic } = await import('magic-sdk');
-        const apiKey = process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY || 'pk_live_F7EEF952E3688610';
+            const apiKey = process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY || 'pk_live_DD04037B973BCFFA';
         console.log('[Magic] Using API key:', apiKey.substring(0, 10) + '...');
         
         const magicInstance = new Magic(apiKey, {

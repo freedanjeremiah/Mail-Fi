@@ -9,9 +9,6 @@ import {
   BridgeAndExecuteButton,
 } from "@avail-project/nexus-widgets";
 import { parseUnits } from "viem";
-import { MagicWalletBridge } from '../components/magic-wallet-bridge';
-import { MagicLoginModal } from '../components/magic-login-modal';
-import { useMagicWallet } from '../components/magic-wallet-provider-simple';
 
 function WalletBridge() {
   const { setProvider } = useNexus();
@@ -31,10 +28,7 @@ function NexusPanelContent() {
   const [chainId, setChainId] = React.useState<number>(11155420);
   const [autoOpen, setAutoOpen] = React.useState(false);
   const [isClient, setIsClient] = React.useState(false);
-  const [showLoginModal, setShowLoginModal] = React.useState(false);
   const transferOpenRef = React.useRef<(() => void) | null>(null);
-  
-  const { isLoggedIn, user, login, logout, isLoading, error } = useMagicWallet();
 
   React.useEffect(() => {
     setIsClient(true);
@@ -78,166 +72,30 @@ function NexusPanelContent() {
     if (recipientParam && amountParam) {
       setAutoOpen(true);
       // Trigger after component mounts
-        setTimeout(() => {
-            transferOpenRef.current?.();
+      setTimeout(() => {
+        transferOpenRef.current?.();
       }, 500);
-      }
+    }
   }, []);
   
   return (
-        <div style={{ 
-          padding: 24, 
-          fontFamily: "system-ui, -apple-system, sans-serif", 
-          maxWidth: 500,
-          margin: '0 auto'
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-            color: 'white',
-            padding: 20,
-            borderRadius: 12,
-            marginBottom: 24,
-            textAlign: 'center'
-          }}>
-            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Pay with Avail</h2>
-            <p style={{ margin: '8px 0 0 0', fontSize: 14, opacity: 0.9 }}>Cross-chain USDC payment</p>
-          </div>
-
-          {isLoading ? (
-            <div style={{
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: 12,
-              padding: 24,
-              textAlign: 'center',
-              marginBottom: 20
-            }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 600, color: '#1f2937' }}>
-                Initializing Magic Wallet...
-              </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: 14, color: '#6b7280' }}>
-                Please wait while we set up your email wallet
-              </p>
-            </div>
-          ) : error ? (
-            <div style={{
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: 12,
-              padding: 24,
-              textAlign: 'center',
-              marginBottom: 20
-            }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>❌</div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 600, color: '#dc2626' }}>
-                Magic Wallet Error
-              </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: 14, color: '#dc2626' }}>
-                {error}
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                style={{
-                  background: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '12px 24px',
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Retry
-              </button>
-            </div>
-          ) : !isLoggedIn ? (
-            <div style={{
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: 12,
-              padding: 24,
-              textAlign: 'center',
-              marginBottom: 20
-            }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🔮</div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 600, color: '#1f2937' }}>
-                Connect Your Email Wallet
-              </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: 14, color: '#6b7280' }}>
-                Sign in with your email to create a wallet and start making payments
-              </p>
-              <button
-                onClick={() => {
-                  console.log('[Mail-Fi] Connect with Email clicked');
-                  setShowLoginModal(true);
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '12px 24px',
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Connect with Email
-              </button>
-            </div>
-          ) : (
-            <div style={{
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: 8,
-              padding: 16,
-              marginBottom: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#166534', marginBottom: 4 }}>
-                  Connected with Magic
-                </div>
-                <div style={{ fontSize: 12, color: '#16a34a' }}>
-                  {user?.email || 'Email wallet active'}
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  console.log('[Mail-Fi] Disconnect clicked');
-                  logout();
-                }}
-                style={{
-                  background: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '6px 12px',
-                  fontSize: 12,
-                  cursor: 'pointer'
-                }}
-              >
-                Disconnect
-              </button>
-            </div>
-          )}
-
-          <MagicLoginModal 
-            isOpen={showLoginModal}
-            onClose={() => {
-              console.log('[Mail-Fi] Login modal closed');
-              setShowLoginModal(false);
-            }}
-            onSuccess={() => {
-              console.log('[Mail-Fi] Login successful');
-              setShowLoginModal(false);
-            }}
-          />
+    <div style={{ 
+      padding: 24, 
+      fontFamily: "system-ui, -apple-system, sans-serif", 
+      maxWidth: 500,
+      margin: '0 auto'
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+        color: 'white',
+        padding: 20,
+        borderRadius: 12,
+        marginBottom: 24,
+        textAlign: 'center'
+      }}>
+        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Pay with Avail</h2>
+        <p style={{ margin: '8px 0 0 0', fontSize: 14, opacity: 0.9 }}>Cross-chain USDC payment</p>
+      </div>
 
       {recipient && (
         <div style={{
@@ -307,17 +165,17 @@ function NexusPanelContent() {
             return `${sourceNames[sourceChain]} → ${destNames[destinationChain]}`;
           })() : 'Ethereum Sepolia → Optimism Sepolia'}
         </p>
-        </div>
+      </div>
 
-        <TransferButton
-          prefill={{
+      <TransferButton
+        prefill={{
           chainId: chainId,
           token: token,
-            amount: amount || undefined,
-            recipient: (recipient && /^0x[0-9a-fA-F]{40}$/.test(recipient)
-              ? (recipient as `0x${string}`)
-              : undefined),
-          }}
+          amount: amount || undefined,
+          recipient: (recipient && /^0x[0-9a-fA-F]{40}$/.test(recipient)
+            ? (recipient as `0x${string}`)
+            : undefined),
+        }}
         onSuccess={(result: any) => {
           console.log('[Mail-Fi] Transfer success:', result);
           
@@ -338,10 +196,10 @@ function NexusPanelContent() {
             setTimeout(() => window.close(), 2000);
           }
         }}
-        >
-          {({ onClick, isLoading }) => {
-            transferOpenRef.current = onClick;
-            return (
+      >
+        {({ onClick, isLoading }) => {
+          transferOpenRef.current = onClick;
+          return (
             <button 
               onClick={onClick} 
               disabled={isLoading || !recipient}
@@ -359,10 +217,10 @@ function NexusPanelContent() {
               }}
             >
               {isLoading ? "Processing…" : "Send Payment"}
-              </button>
-            );
-          }}
-        </TransferButton>
+            </button>
+          );
+        }}
+      </TransferButton>
         <hr style={{ margin: "12px 0" }} />
 
         <div style={{ marginBottom: 8 }}>
@@ -455,7 +313,7 @@ export default function NexusPanelPage() {
       }
     }}>
       <div className="min-h-screen bg-gray-50">
-        <MagicWalletBridge />
+        <WalletBridge />
         <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
           <NexusPanelContent />
         </React.Suspense>
