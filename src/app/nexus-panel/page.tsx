@@ -26,6 +26,9 @@ function NexusPanelContent() {
   const transferOpenRef = React.useRef<(() => void) | null>(null);
 
   React.useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     // Get params from URL
     const params = new URLSearchParams(window.location.search);
     const recipientParam = params.get('recipient');
@@ -98,13 +101,13 @@ function NexusPanelContent() {
         <p style={{ margin: 0, fontSize: 36, fontWeight: 700, color: '#111827' }}>{amount}</p>
         <p style={{ margin: '4px 0 0 0', fontSize: 16, fontWeight: 600, color: '#7c3aed' }}>USDC</p>
         <p style={{ margin: '8px 0 0 0', fontSize: 12, color: '#6b7280' }}>
-          on {new URLSearchParams(window.location.search).get('destinationChain') === 'arbitrum' ? 'Arbitrum Sepolia' : 'Optimism Sepolia'}
+          on {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('destinationChain') === 'arbitrum' ? 'Arbitrum Sepolia' : 'Optimism Sepolia'}
         </p>
       </div>
 
       <TransferButton
         prefill={{
-          chainId: parseInt(new URLSearchParams(window.location.search).get('chainId') || '11155420'),
+          chainId: typeof window !== 'undefined' ? parseInt(new URLSearchParams(window.location.search).get('chainId') || '11155420') : 11155420,
           token: 'USDC',
           amount: amount || undefined,
           recipient: (recipient && /^0x[0-9a-fA-F]{40}$/.test(recipient)
@@ -227,11 +230,20 @@ function NexusPanelContent() {
 
 export default function NexusPanelPage() {
   return (
-    <NexusProvider config={{ network: "testnet", debug: false }}>
-      <WalletBridge />
-      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-        <NexusPanelContent />
-      </React.Suspense>
+    <NexusProvider config={{ 
+      network: "testnet", 
+      debug: true,
+      rpcUrls: {
+        11155420: "https://sepolia.optimism.io", // Optimism Sepolia
+        421614: "https://sepolia.arbitrum.io/rpc" // Arbitrum Sepolia
+      }
+    }}>
+      <div className="min-h-screen bg-gray-50">
+        <WalletBridge />
+        <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+          <NexusPanelContent />
+        </React.Suspense>
+      </div>
     </NexusProvider>
   );
 }
