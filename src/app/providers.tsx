@@ -15,17 +15,107 @@ const NexusProvider = React.lazy(async () => {
   return { default: mod.NexusProvider };
 });
 
+// Custom chain definitions for chains not available in wagmi/chains
+const baseSepolia = {
+  id: 84532,
+  name: 'Base Sepolia',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://sepolia.base.org'] },
+    public: { http: ['https://sepolia.base.org'] },
+  },
+  blockExplorers: {
+    default: { name: 'Basescan', url: 'https://sepolia.basescan.org' },
+  },
+  testnet: true,
+} as const;
+
+const polygonAmoy = {
+  id: 80002,
+  name: 'Polygon Amoy',
+  nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://rpc-amoy.polygon.technology'] },
+    public: { http: ['https://rpc-amoy.polygon.technology'] },
+  },
+  blockExplorers: {
+    default: { name: 'PolygonScan', url: 'https://amoy.polygonscan.com' },
+  },
+  testnet: true,
+} as const;
+
+const polygon = {
+  id: 137,
+  name: 'Polygon',
+  nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://polygon.llamarpc.com'] },
+    public: { http: ['https://polygon.llamarpc.com'] },
+  },
+  blockExplorers: {
+    default: { name: 'PolygonScan', url: 'https://polygonscan.com' },
+  },
+} as const;
+
+const avalanche = {
+  id: 43114,
+  name: 'Avalanche',
+  nativeCurrency: { name: 'AVAX', symbol: 'AVAX', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://avalanche.llamarpc.com'] },
+    public: { http: ['https://avalanche.llamarpc.com'] },
+  },
+  blockExplorers: {
+    default: { name: 'SnowTrace', url: 'https://snowtrace.io' },
+  },
+} as const;
+
+const bsc = {
+  id: 56,
+  name: 'BNB Smart Chain',
+  nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://bsc.llamarpc.com'] },
+    public: { http: ['https://bsc.llamarpc.com'] },
+  },
+  blockExplorers: {
+    default: { name: 'BscScan', url: 'https://bscscan.com' },
+  },
+} as const;
+
 const config = createConfig(
   getDefaultConfig({
-    chains: [mainnet, sepolia, base, arbitrum, arbitrumSepolia, optimism, optimismSepolia],
+    chains: [
+      // Testnet chains
+      sepolia, 
+      arbitrumSepolia, 
+      optimismSepolia,
+      baseSepolia,
+      polygonAmoy,
+      // Mainnet chains
+      mainnet,
+      arbitrum,
+      optimism,
+      base,
+      polygon,
+      avalanche,
+      bsc
+    ],
     transports: {
-      [mainnet.id]: http(),
+      // Testnet
       [sepolia.id]: http(),
-      [base.id]: http(),
-      [arbitrum.id]: http(),
       [arbitrumSepolia.id]: http(),
-      [optimism.id]: http(),
       [optimismSepolia.id]: http(),
+      [baseSepolia.id]: http(),
+      [polygonAmoy.id]: http(),
+      // Mainnet
+      [mainnet.id]: http(),
+      [arbitrum.id]: http(),
+      [optimism.id]: http(),
+      [base.id]: http(),
+      [polygon.id]: http(),
+      [avalanche.id]: http(),
+      [bsc.id]: http(),
     },
     walletConnectProjectId: '7a6e6a1f7934519391a590f1b17504df',
     appName: 'Mail-Fi',

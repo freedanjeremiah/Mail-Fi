@@ -1860,7 +1860,7 @@ function injectComposeButton(composeWindow) {
     <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
-      </svg>
+    </svg>
       <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
         <span style="font-size: 11px; opacity: 0.9;">Pay with Avail</span>
         <span style="font-size: 14px; font-weight: 700;">USDC</span>
@@ -1894,26 +1894,128 @@ function injectComposeButton(composeWindow) {
       console.warn("[Mail-Fi] Failed to extract recipient:", err);
     }
     let destinationChain = "optimism";
+    let sourceChain = "ethereum";
+    let token = "USDC";
     let chainId = "11155420";
+    let sourceChainId = "11155111";
+    const chainMappings = {
+      // Testnet
+      "ethereum-sepolia": { id: "11155111", name: "Ethereum Sepolia" },
+      "arbitrum-sepolia": { id: "421614", name: "Arbitrum Sepolia" },
+      "optimism-sepolia": { id: "11155420", name: "Optimism Sepolia" },
+      "base-sepolia": { id: "84532", name: "Base Sepolia" },
+      "polygon-amoy": { id: "80002", name: "Polygon Amoy" },
+      // Mainnet
+      "ethereum": { id: "1", name: "Ethereum" },
+      "arbitrum": { id: "42161", name: "Arbitrum" },
+      "optimism": { id: "10", name: "Optimism" },
+      "base": { id: "8453", name: "Base" },
+      "polygon": { id: "137", name: "Polygon" },
+      "avalanche": { id: "43114", name: "Avalanche" },
+      "bsc": { id: "56", name: "BSC" }
+    };
     try {
       const subjectField = composeWindow.querySelector('input[name="subjectbox"]');
       if (subjectField?.value) {
         const subject = subjectField.value.trim();
         console.log("[Mail-Fi] Subject line:", subject);
-        const amountMatch = subject.match(/(\d+\.?\d*)\s*(?:USDC)?/i);
+        const amountMatch = subject.match(/(\d+\.?\d*)\s*(?:USDC|ETH)?/i);
         if (amountMatch) {
           amount = amountMatch[1];
           console.log("[Mail-Fi] Extracted amount from subject:", amount);
         }
-        if (subject.toLowerCase().includes("arbitrum")) {
-          destinationChain = "arbitrum";
+        if (subject.toLowerCase().includes("eth")) {
+          token = "ETH";
+        } else if (subject.toLowerCase().includes("usdc")) {
+          token = "USDC";
+        }
+        if (subject.toLowerCase().includes("arbitrum sepolia")) {
+          sourceChain = "arbitrum-sepolia";
+          sourceChainId = "421614";
+        } else if (subject.toLowerCase().includes("optimism sepolia")) {
+          sourceChain = "optimism-sepolia";
+          sourceChainId = "11155420";
+        } else if (subject.toLowerCase().includes("ethereum sepolia")) {
+          sourceChain = "ethereum-sepolia";
+          sourceChainId = "11155111";
+        } else if (subject.toLowerCase().includes("base sepolia")) {
+          sourceChain = "base-sepolia";
+          sourceChainId = "84532";
+        } else if (subject.toLowerCase().includes("polygon amoy")) {
+          sourceChain = "polygon-amoy";
+          sourceChainId = "80002";
+        } else if (subject.toLowerCase().includes("arbitrum")) {
+          sourceChain = "arbitrum";
+          sourceChainId = "42161";
+        } else if (subject.toLowerCase().includes("optimism")) {
+          sourceChain = "optimism";
+          sourceChainId = "10";
+        } else if (subject.toLowerCase().includes("ethereum")) {
+          sourceChain = "ethereum";
+          sourceChainId = "1";
+        } else if (subject.toLowerCase().includes("base")) {
+          sourceChain = "base";
+          sourceChainId = "8453";
+        } else if (subject.toLowerCase().includes("polygon")) {
+          sourceChain = "polygon";
+          sourceChainId = "137";
+        } else if (subject.toLowerCase().includes("avalanche")) {
+          sourceChain = "avalanche";
+          sourceChainId = "43114";
+        } else if (subject.toLowerCase().includes("bsc")) {
+          sourceChain = "bsc";
+          sourceChainId = "56";
+        }
+        if (subject.toLowerCase().includes("to arbitrum sepolia")) {
+          destinationChain = "arbitrum-sepolia";
           chainId = "421614";
           console.log("[Mail-Fi] Destination: Arbitrum Sepolia");
-        } else if (subject.toLowerCase().includes("optimism")) {
-          destinationChain = "optimism";
+        } else if (subject.toLowerCase().includes("to optimism sepolia")) {
+          destinationChain = "optimism-sepolia";
           chainId = "11155420";
           console.log("[Mail-Fi] Destination: Optimism Sepolia");
+        } else if (subject.toLowerCase().includes("to ethereum sepolia")) {
+          destinationChain = "ethereum-sepolia";
+          chainId = "11155111";
+          console.log("[Mail-Fi] Destination: Ethereum Sepolia");
+        } else if (subject.toLowerCase().includes("to base sepolia")) {
+          destinationChain = "base-sepolia";
+          chainId = "84532";
+          console.log("[Mail-Fi] Destination: Base Sepolia");
+        } else if (subject.toLowerCase().includes("to polygon amoy")) {
+          destinationChain = "polygon-amoy";
+          chainId = "80002";
+          console.log("[Mail-Fi] Destination: Polygon Amoy");
+        } else if (subject.toLowerCase().includes("to arbitrum")) {
+          destinationChain = "arbitrum";
+          chainId = "42161";
+          console.log("[Mail-Fi] Destination: Arbitrum");
+        } else if (subject.toLowerCase().includes("to optimism")) {
+          destinationChain = "optimism";
+          chainId = "10";
+          console.log("[Mail-Fi] Destination: Optimism");
+        } else if (subject.toLowerCase().includes("to ethereum")) {
+          destinationChain = "ethereum";
+          chainId = "1";
+          console.log("[Mail-Fi] Destination: Ethereum");
+        } else if (subject.toLowerCase().includes("to base")) {
+          destinationChain = "base";
+          chainId = "8453";
+          console.log("[Mail-Fi] Destination: Base");
+        } else if (subject.toLowerCase().includes("to polygon")) {
+          destinationChain = "polygon";
+          chainId = "137";
+          console.log("[Mail-Fi] Destination: Polygon");
+        } else if (subject.toLowerCase().includes("to avalanche")) {
+          destinationChain = "avalanche";
+          chainId = "43114";
+          console.log("[Mail-Fi] Destination: Avalanche");
+        } else if (subject.toLowerCase().includes("to bsc")) {
+          destinationChain = "bsc";
+          chainId = "56";
+          console.log("[Mail-Fi] Destination: BSC");
         }
+        console.log("[Mail-Fi] Parsed:", { amount, token, sourceChain, destinationChain, sourceChainId, chainId });
       }
     } catch (err) {
       console.warn("[Mail-Fi] Failed to extract from subject:", err);
@@ -1932,12 +2034,14 @@ function injectComposeButton(composeWindow) {
         token: "USDC"
       }
     });
-    console.log("[Mail-Fi] Opening payment for:", recipientAddress, "Amount:", amount, "Chain:", destinationChain, "ChainID:", chainId);
+    console.log("[Mail-Fi] Opening payment for:", recipientAddress, "Amount:", amount, "Token:", token, "Source:", sourceChain, "Destination:", destinationChain, "ChainID:", chainId);
     const params = new URLSearchParams({
       recipient: recipientAddress,
       amount,
-      token: "USDC",
+      token,
       chainId,
+      sourceChain,
+      sourceChainId,
       destinationChain,
       correlationId
     });
