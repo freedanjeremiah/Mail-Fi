@@ -35,53 +35,103 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Browser Extension (Mail‑Fi for Gmail)
+## Mail-Fi: Avail Nexus Payments in Gmail
 
-This repo also contains a Chrome Manifest V3 extension that injects a payment panel into Gmail and will integrate with Avail Nexus.
+Chrome extension that enables cross-chain USDC payments directly in Gmail using Avail Nexus SDK.
 
-### Build
+### Quick Start
 
-```powershell
+**1. Build extension:**
+```bash
 npm run build:ext
 ```
 
-Artifacts will be placed in `dist/extension`.
-
-### Load in Chrome
-
-1. Open `chrome://extensions`
-2. Toggle on "Developer mode"
-3. Click "Load unpacked" and select the `dist/extension` folder
-4. Open Gmail (https://mail.google.com). A "Pay with Avail" floating button appears. Click it to open the panel.
-
-### Development
-
-Watch and rebuild on changes:
-
-```powershell
-npm run watch:ext
+**2. Load in Chrome:**
+```
+chrome://extensions → Enable "Developer mode" → "Load unpacked" → Select dist/extension
 ```
 
-### Nexus Cross-Chain Features
+**3. Use in Gmail:**
+```
+1. Go to https://mail.google.com
+2. Click "Compose"
+3. To: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb (PUT WALLET ADDRESS HERE)
+4. Click "Pay 0.001 USDC with Avail" button
+5. Payment window opens → Connect wallet → Click "Send Payment"
+6. Nexus widget appears → Approve intent → Sign in MetaMask
+7. Payment completes → Window closes → Snippet inserted in email
+```
 
-The extension integrates with Avail Nexus for cross-chain payments. Visit http://localhost:3000/nexus-panel to access:
+**Important:** Put the recipient's **Ethereum wallet address** (0x...) in Gmail's "To" field where you normally put email addresses.
 
-- **Transfer**: Send tokens cross-chain
-- **Bridge**: Bridge tokens between chains
-- **Wallet Support**: MetaMask, WalletConnect, and other Web3 wallets via ConnectKit
+### How It Works
 
-**Key Components:**
-- `src/app/providers.tsx` - Wagmi + ConnectKit + Nexus SDK setup
-- `src/app/components/wallet-bridge.tsx` - Automatic SDK initialization
-- `src/app/components/nexus-bridge.tsx` - Transfer and Bridge UI
-- `src/app/nexus-panel/page.tsx` - Nexus panel page
+1. **Put wallet address in "To" field**: `0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb`
+2. **Put amount and destination in "Subject" field**: `0.01 USDC to Optimism Sepolia` or `1 USDC to Arbitrum Sepolia`
+3. **Click button**: "Pay with Avail"
+4. **Payment window opens**: Shows recipient, amount, and destination chain
+5. **Connect wallet**: MetaMask connection
+6. **Click "Send Payment"**: Triggers Nexus TransferButton widget
+7. **Nexus modal appears**: Intent approval UI
+8. **Sign in MetaMask**: Transaction signature
+9. **Done**: Payment complete, snippet inserted in email
 
-**Stack:**
-- Avail Nexus SDK (`@avail-project/nexus-widgets`)
-- Wagmi for wallet connection
-- ConnectKit for wallet UI
-- React Query for state management
+### Tech Stack
 
-### API Stubs
+- Nexus Widgets: `@avail-project/nexus-widgets` (TransferButton, BridgeButton)
+- Nexus SDK Bundle: From `nexus-hyperliquid-poc` (nexusCA.js for in-page support)
+- Payment UI: Next.js app at localhost:3000
+- Extension: Chrome Manifest V3
 
-An example route handler exists at `src/app/api/payments/route.ts` for server-side actions; wire this to Avail Nexus as needed.
+### How to Use
+
+**1. Reload extension:**
+```
+chrome://extensions → Click reload icon on Mail-Fi extension
+```
+
+**2. Go to Gmail:**
+```
+https://mail.google.com → Click "Compose"
+```
+
+**3. Enter wallet address in Gmail's "To" field:**
+```
+To: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
+```
+(Replace the email address with the recipient's Ethereum wallet address)
+
+**4. Enter amount and destination in Gmail's "Subject" field:**
+```
+Subject: 0.01 USDC to Optimism Sepolia
+```
+or
+```
+Subject: 1 USDC to Arbitrum Sepolia
+```
+(Extension extracts amount and destination chain)
+
+**5. Click "Pay with Avail" button:**
+- Payment window opens (500x700)
+- Shows recipient address and amount
+
+**6. Connect wallet & pay:**
+- Click "Connect Wallet" button
+- Choose MetaMask
+- Switch to Optimism Sepolia if prompted
+- Click "Send Payment"
+- Nexus widget modal appears
+- Approve intent
+- Sign in MetaMask
+- Done!
+
+**7. Payment snippet inserted in email:**
+```
+Paid 0.001 USDC via Avail. Transaction: 0xabc123...
+```
+
+### Requirements
+
+- MetaMask installed
+- USDC on Optimism Sepolia (or any supported chain for cross-chain bridging)
+- ETH for gas fees

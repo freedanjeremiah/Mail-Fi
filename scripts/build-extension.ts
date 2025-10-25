@@ -30,6 +30,7 @@ async function run() {
       "background/index": resolve(root, "extension", "background", "index.ts"),
       "content/gmail": resolve(root, "extension", "content", "gmail.ts"),
       "ui/panel": resolve(root, "extension", "ui", "panel.tsx"),
+      "injected/nexus-init": resolve(root, "extension", "injected", "nexus-init.ts"),
     },
     outdir,
     platform: "browser",
@@ -51,6 +52,13 @@ async function run() {
   } else {
     await ctx.rebuild();
     await ctx.dispose();
+    // Copy prebuilt Nexus CA bundle from nexus-hyperliquid-poc
+    try {
+      cpSync(resolve(root, "extension", "injected", "nexus-ca.js"), resolve(outdir, "injected", "nexus-ca.js"));
+      console.log("Copied nexus-ca.js");
+    } catch (err) {
+      console.warn("nexus-ca.js not found, skipping");
+    }
     console.log("Built extension to dist/extension");
   }
 }

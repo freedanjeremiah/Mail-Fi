@@ -16,25 +16,30 @@
 .mailfi-compose-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
   background: transparent;
   border: 0;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font: 500 14px "Google Sans", Roboto, sans-serif;
-  color: #5f6368;
+  border-radius: 8px;
+  padding: 2px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
+  opacity: 1;
 }
 
 .mailfi-compose-btn:hover {
-  background: rgba(60, 64, 67, 0.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .mailfi-compose-btn:active {
-  background: rgba(60, 64, 67, 0.12);
+  transform: translateY(0);
 }
 
-.mailfi-compose-btn svg {
-  fill: #5f6368;
+.mailfi-compose-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mailfi-compose-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }

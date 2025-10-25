@@ -25,6 +25,10 @@
     {
       "resources": ["ui/panel.html", "ui/panel.js", "ui/panel.css"],
       "matches": ["https://mail.google.com/*"]
+    },
+    {
+      "resources": ["injected/nexus-ca.js"],
+      "matches": ["https://mail.google.com/*"]
     }
   ]
 }
