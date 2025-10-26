@@ -19,16 +19,18 @@ ChainInBox addresses three critical barriers to Web3 mass adoption:
 ## Key Features
 
 **Payment System**
-- Send USDC/ETH from Gmail compose window to any Ethereum address
-- Automatically detect payment requests in received emails
-- Cross-chain transfers via Avail Nexus with single-click approval
-- Insert blockchain-verified receipts into email body
+- Send USDC/ETH from Gmail compose window across any Avail-supported chain
+- Automatically detect payment requests in received emails and route through optimal chains
+- Cross-chain transfers via Avail Nexus with single-click approval across 12+ networks
+- Insert blockchain-verified receipts into email body with chain-specific transaction details
 
 **Investment Platform**
-- Email-based fundraising for startups
-- Smart contract escrow with admin approval workflow
-- Multi-chain funding via Nexus automatic bridging
-- Automated refunds for failed or rejected projects
+- Email-based startup fundraising with smart contract escrow and admin approval workflow
+- Time-locked USDC vaults for secure email payments with metadata and unlock conditions
+- Cross-chain lending pool with per-second interest calculation and automated borrowing
+- ERC20 limit order system for token swaps at target prices via email requests
+- Yield farming staking rewards with time-based accrual and automated distribution
+- Multi-chain funding via Nexus automatic bridging with automated refunds for failed projects
 
 **Developer Tools**
 - Full Nexus widget integration (TransferButton, BridgeButton, BridgeAndExecuteButton)
@@ -56,7 +58,10 @@ ChainInBox addresses three critical barriers to Web3 mass adoption:
 ├─────────────────────────────────────────────────────────────┤
 │  Smart Contracts (Base Sepolia)                             │
 │  ├── Investment Escrow (0x1302C9F6...)                      │
-│  └── DeFi Contracts (Vault, Lending, Yield)                 │
+│  ├── Mail Vault (Time-locked USDC transfers)                │
+│  ├── Lending Pool (Deposit/borrow with interest)            │
+│  ├── Limit Order (ERC20 token swaps)                        │
+│  └── Yield Farm (Staking rewards)                           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -93,15 +98,50 @@ ChainInBox addresses three critical barriers to Web3 mass adoption:
 
 **Security Features**: ReentrancyGuard prevents reentrancy attacks, SafeERC20 handles token transfers, admin/founder/investor access control, escrow pattern with automatic refunds, gas optimizations
 
-### Additional Contracts
+### USDC Mail Vault
 
-**Mail Vault**: Time-locked USDC transfers with email metadata - sender locks funds, recipient claims after unlock time
+**Network**: Ethereum Sepolia (Chain ID: 11155111)
 
-**Lending Pool**: Deposit/borrow protocol with per-second interest calculation
+**Core Functions**:
+- `createVault()` - Lock USDC with recipient, unlock time, and email metadata
+- `releaseVault()` - Recipient claims funds after unlock time expires
+- `refundVault()` - Sender reclaims funds if recipient doesn't claim
 
-**Limit Order**: ERC20 token swaps executed at target prices
+**Security Features**: Time-lock mechanism, ReentrancyGuard, SafeERC20 token handling, metadata storage for email context
 
-**Yield Farm**: Staking rewards distribution with time-based accrual
+### Lending Pool
+
+**Network**: Optimism Sepolia (Chain ID: 11155420)
+
+**Core Functions**:
+- `deposit()` - Users deposit USDC to earn interest
+- `borrow()` - Users borrow against their deposits
+- `repay()` - Users repay loans with accrued interest
+- `withdraw()` - Users withdraw deposits and earned interest
+
+**Security Features**: Per-second interest calculation, collateral-based borrowing, ReentrancyGuard, automated interest accrual
+
+### Limit Order
+
+**Network**: Arbitrum Sepolia (Chain ID: 421614)
+
+**Core Functions**:
+- `placeOrder()` - Create token swap orders at target prices
+- `fulfillOrder()` - Execute orders when target price is reached
+- `cancelOrder()` - Cancel unfilled orders
+
+**Security Features**: Price validation, order matching, ReentrancyGuard, automated execution
+
+### Yield Farm
+
+**Network**: Polygon Amoy (Chain ID: 80002)
+
+**Core Functions**:
+- `stake()` - Users stake tokens to earn rewards
+- `unstake()` - Users withdraw staked tokens
+- `claimRewards()` - Users claim accumulated rewards
+
+**Security Features**: Time-based reward calculation, ReentrancyGuard, automated reward distribution
 
 ---
 
