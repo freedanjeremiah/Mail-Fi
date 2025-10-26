@@ -1,7 +1,7 @@
 import { Connection, PublicKey } from '@solana/web3.js'
 import { AnchorProvider } from '@coral-xyz/anchor'
 
-const PROGRAM_ID_STR = 'DzsJvHHEdVzx38CqrPxR2KauHBJ7BwSP3FjKhdhGhT1f'
+const PROGRAM_ID_STR = 'Ezs5NC81twpytKzrHtPbe11VvXggAZFqLR9ELz562jt'
 
 export const PROGRAM_ID = new PublicKey(PROGRAM_ID_STR)
 

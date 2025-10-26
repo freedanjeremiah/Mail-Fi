@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-pyusd_manifesto_contracts = "DzsJvHHEdVzx38CqrPxR2KauHBJ7BwSP3FjKhdhGhT1f"
+pyusd_manifesto_contracts = "Ezs5NC81twpytKzrHtPbe11VvXggAZFqLR9ELz562jt"
 
 [programs.localnet]
-pyusd_manifesto_contracts = "DzsJvHHEdVzx38CqrPxR2KauHBJ7BwSP3FjKhdhGhT1f"
+pyusd_manifesto_contracts = "Ezs5NC81twpytKzrHtPbe11VvXggAZFqLR9ELz562jt"
 
 [registry]
 url = "https://api.apr.dev"

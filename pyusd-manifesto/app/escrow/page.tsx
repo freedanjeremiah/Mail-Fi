@@ -15,7 +15,7 @@ import {
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
 import { WalletDebug } from '@/components/WalletDebug'
 
-const PYUSD_MINT = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM')
+const PYUSD_MINT = new PublicKey('2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo')
 
 export default function EscrowPage() {
   const { connection } = useConnection()
