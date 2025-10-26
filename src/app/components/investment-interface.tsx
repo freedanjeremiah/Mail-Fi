@@ -740,6 +740,7 @@ export function InvestmentInterface({
           to { transform: rotate(360deg); }
         }
       `}</style>
+        </div>
       </div>
     </NexusProvider>
   );
