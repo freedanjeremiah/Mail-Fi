@@ -117,7 +117,7 @@ Cross-chain USDC/ETH transfers with automatic routing. Users specify destination
     chainId: 11155420,  // Optimism Sepolia
     token: "USDC",
     amount: "0.01",
-    recipient: "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25",
+    recipient: "J7zBWtyovK9HzZXhrxefDNtDXkWoFXP9xLi5wAK1LbSf",
   }}
   onSuccess={(result) => {
     window.opener.postMessage({
@@ -190,7 +190,7 @@ npm run dev  # Runs at localhost:3000
 1. Open Gmail and click **Compose**
 2. **To field**: Enter recipient's Ethereum address
    ```
-   0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25
+   J7zBWtyovK9HzZXhrxefDNtDXkWoFXP9xLi5wAK1LbSf
    ```
 3. **Subject field**: Specify amount and destination chain
    ```
