@@ -163,8 +163,8 @@ Bridge USDC to destination chain and execute contract call in single transaction
 
 ```bash
 # Clone and install
-git clone https://github.com/freedanjeremiah/ChainInBox.git
-cd ChainInBox
+git clone https://github.com/freedanjeremiah/Mail-Fi.git
+cd Mail-Fi
 npm install
 
 # Build Gmail protocol
