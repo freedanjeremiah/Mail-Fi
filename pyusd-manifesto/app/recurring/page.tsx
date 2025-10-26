@@ -79,7 +79,7 @@ export default function RecurringPage() {
   const handleCreateRecurring = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!publicKey || !wallet.connected) {
-      setStatus({ message: '❌ Please connect your wallet', type: 'error' })
+      setStatus({ message: 'Please connect your wallet', type: 'error' })
       return
     }
 
@@ -120,7 +120,7 @@ export default function RecurringPage() {
 
   const handleExecutePayment = async (recurringPDA: PublicKey, recipientPubkey: PublicKey) => {
     if (!publicKey || !wallet.connected) {
-      setStatus({ message: '❌ Please connect your wallet', type: 'error' })
+      setStatus({ message: 'Please connect your wallet', type: 'error' })
       return
     }
 
@@ -148,7 +148,7 @@ export default function RecurringPage() {
 
   const handleCancelPayment = async (recurringPDA: PublicKey) => {
     if (!publicKey || !wallet.connected) {
-      setStatus({ message: '❌ Please connect your wallet', type: 'error' })
+      setStatus({ message: 'Please connect your wallet', type: 'error' })
       return
     }
     if (!confirm('Are you sure you want to cancel this recurring payment?')) return
@@ -190,7 +190,7 @@ export default function RecurringPage() {
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">💸 PYUSD Manifesto - Recurring Payments</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">PYUSD Manifesto - Recurring Payments</h1>
           <p className="text-xl text-purple-200">Set up automatic recurring payments</p>
         </div>
 

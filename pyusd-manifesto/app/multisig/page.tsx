@@ -172,7 +172,7 @@ export default function MultisigPage() {
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">💸 PYUSD Manifesto - Multisig Wallet</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">PYUSD Manifesto - Multisig Wallet</h1>
           <p className="text-xl text-purple-200">Create multi-signature wallets for secure transactions</p>
         </div>
 

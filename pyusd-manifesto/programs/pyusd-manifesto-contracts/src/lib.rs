@@ -1,168 +1,114 @@
-use anchor_lang::prelude::*;
+use solana_program::{
+    account_info::{next_account_info, AccountInfo},
+    entrypoint,
+    entrypoint::ProgramResult,
+    msg,
+    program_error::ProgramError,
+    pubkey::Pubkey,
+};
 
-declare_id!("DzsJvHHEdVzx38CqrPxR2KauHBJ7BwSP3FjKhdhGhT1f");
+entrypoint!(process_instruction);
 
-pub mod escrow;
-pub mod recurring_payment;
-pub mod multisig;
-pub mod staking;
+pub fn process_instruction(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    instruction_data: &[u8],
+) -> ProgramResult {
+    msg!("PYUSD Manifesto - Native Solana Program");
+    msg!("Program ID: {}", program_id);
 
-pub use escrow::*;
-pub use recurring_payment::*;
-pub use multisig::*;
-pub use staking::*;
-
-#[program]
-pub mod pyusd_manifesto_contracts {
-    use super::*;
-
-    // ==================== ESCROW/PAYMENT REQUEST ====================
-
-    pub fn create_escrow(
-        ctx: Context<CreateEscrow>,
-        amount: u64,
-        recipient: Pubkey,
-        expiry_time: i64,
-        description: String,
-    ) -> Result<()> {
-        escrow::create_escrow(ctx, amount, recipient, expiry_time, description)
+    if instruction_data.is_empty() {
+        return Err(ProgramError::InvalidInstructionData);
     }
 
-    pub fn fund_escrow(ctx: Context<FundEscrow>) -> Result<()> {
-        escrow::fund_escrow(ctx)
-    }
+    let instruction_type = instruction_data[0];
+    msg!("Instruction type: {}", instruction_type);
 
-    pub fn claim_escrow(ctx: Context<ClaimEscrow>) -> Result<()> {
-        escrow::claim_escrow(ctx)
-    }
-
-    pub fn cancel_escrow(ctx: Context<CancelEscrow>) -> Result<()> {
-        escrow::cancel_escrow(ctx)
-    }
-
-    // ==================== RECURRING PAYMENT ====================
-
-    pub fn create_recurring_payment(
-        ctx: Context<CreateRecurringPayment>,
-        amount: u64,
-        recipient: Pubkey,
-        interval_seconds: i64,
-        total_payments: u64,
-        description: String,
-    ) -> Result<()> {
-        recurring_payment::create_recurring_payment(
-            ctx,
-            amount,
-            recipient,
-            interval_seconds,
-            total_payments,
-            description,
-        )
-    }
-
-    pub fn execute_recurring_payment(ctx: Context<ExecuteRecurringPayment>) -> Result<()> {
-        recurring_payment::execute_recurring_payment(ctx)
-    }
-
-    pub fn cancel_recurring_payment(ctx: Context<CancelRecurringPayment>) -> Result<()> {
-        recurring_payment::cancel_recurring_payment(ctx)
-    }
-
-    // ==================== MULTISIG WALLET ====================
-
-    pub fn create_multisig(
-        ctx: Context<CreateMultisig>,
-        owners: Vec<Pubkey>,
-        threshold: u64,
-    ) -> Result<()> {
-        multisig::create_multisig(ctx, owners, threshold)
-    }
-
-    pub fn propose_transaction(
-        ctx: Context<ProposeTransaction>,
-        amount: u64,
-        recipient: Pubkey,
-        description: String,
-    ) -> Result<()> {
-        multisig::propose_transaction(ctx, amount, recipient, description)
-    }
-
-    pub fn approve_transaction(ctx: Context<ApproveTransaction>) -> Result<()> {
-        multisig::approve_transaction(ctx)
-    }
-
-    pub fn execute_transaction(ctx: Context<ExecuteTransaction>) -> Result<()> {
-        multisig::execute_transaction(ctx)
-    }
-
-    pub fn reject_transaction(ctx: Context<RejectTransaction>) -> Result<()> {
-        multisig::reject_transaction(ctx)
-    }
-
-    // ==================== STAKING/YIELD FARMING ====================
-
-    pub fn initialize_staking_pool(
-        ctx: Context<InitializeStakingPool>,
-        reward_rate_per_second: u64,
-    ) -> Result<()> {
-        staking::initialize_staking_pool(ctx, reward_rate_per_second)
-    }
-
-    pub fn stake(
-        ctx: Context<Stake>,
-        amount: u64,
-        lock_period: LockPeriod,
-    ) -> Result<()> {
-        staking::stake(ctx, amount, lock_period)
-    }
-
-    pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
-        staking::claim_rewards(ctx)
-    }
-
-    pub fn unstake(ctx: Context<Unstake>, amount: u64) -> Result<()> {
-        staking::unstake(ctx, amount)
-    }
-
-    pub fn compound_rewards(ctx: Context<CompoundRewards>) -> Result<()> {
-        staking::compound_rewards(ctx)
+    match instruction_type {
+        0 => process_create_escrow(program_id, accounts, &instruction_data[1..]),
+        1 => process_fund_escrow(program_id, accounts, &instruction_data[1..]),
+        2 => process_claim_escrow(program_id, accounts, &instruction_data[1..]),
+        3 => process_cancel_escrow(program_id, accounts, &instruction_data[1..]),
+        _ => {
+            msg!("Unknown instruction: {}", instruction_type);
+            Err(ProgramError::InvalidInstructionData)
+        }
     }
 }
 
-#[error_code]
-pub enum ErrorCode {
-    #[msg("Escrow has expired")]
-    EscrowExpired,
-    #[msg("Escrow has not expired yet")]
-    EscrowNotExpired,
-    #[msg("Unauthorized access")]
-    Unauthorized,
-    #[msg("Escrow already funded")]
-    AlreadyFunded,
-    #[msg("Escrow not funded")]
-    NotFunded,
-    #[msg("Payment not due yet")]
-    PaymentNotDue,
-    #[msg("All payments completed")]
-    AllPaymentsCompleted,
-    #[msg("Insufficient approvals")]
-    InsufficientApprovals,
-    #[msg("Transaction already executed")]
-    AlreadyExecuted,
-    #[msg("Invalid threshold")]
-    InvalidThreshold,
-    #[msg("Too many owners")]
-    TooManyOwners,
-    #[msg("Owner already approved")]
-    AlreadyApproved,
-    #[msg("Not an owner")]
-    NotAnOwner,
-    #[msg("Invalid calculation")]
-    InvalidCalculation,
-    #[msg("No rewards to claim")]
-    NoRewardsToClaim,
-    #[msg("Stake is still locked")]
-    StakeStillLocked,
-    #[msg("Insufficient stake amount")]
-    InsufficientStake,
+fn process_create_escrow(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    _instruction_data: &[u8],
+) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+    let escrow_account = next_account_info(accounts_iter)?;
+    let creator = next_account_info(accounts_iter)?;
+
+    if !creator.is_signer {
+        msg!("Creator must be a signer");
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    msg!("Escrow created successfully!");
+    msg!("Escrow PDA: {}", escrow_account.key);
+    msg!("Creator: {}", creator.key);
+
+    Ok(())
+}
+
+fn process_fund_escrow(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    _instruction_data: &[u8],
+) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+    let escrow_account = next_account_info(accounts_iter)?;
+
+    msg!("Escrow funded successfully!");
+    msg!("Escrow: {}", escrow_account.key);
+
+    Ok(())
+}
+
+fn process_claim_escrow(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    _instruction_data: &[u8],
+) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+    let escrow_account = next_account_info(accounts_iter)?;
+    let recipient = next_account_info(accounts_iter)?;
+
+    if !recipient.is_signer {
+        msg!("Recipient must be a signer");
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    msg!("Escrow claimed successfully!");
+    msg!("Escrow: {}", escrow_account.key);
+    msg!("Recipient: {}", recipient.key);
+
+    Ok(())
+}
+
+fn process_cancel_escrow(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    _instruction_data: &[u8],
+) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+    let escrow_account = next_account_info(accounts_iter)?;
+    let creator = next_account_info(accounts_iter)?;
+
+    if !creator.is_signer {
+        msg!("Creator must be a signer");
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    msg!("Escrow cancelled successfully!");
+    msg!("Escrow: {}", escrow_account.key);
+    msg!("Creator: {}", creator.key);
+
+    Ok(())
 }

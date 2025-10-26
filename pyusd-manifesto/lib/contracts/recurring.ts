@@ -1,9 +1,16 @@
-import { Connection, PublicKey, SystemProgram } from '@solana/web3.js'
+import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js'
 import { BN } from '@coral-xyz/anchor'
-import { getProgram, getPDA } from './anchor-setup'
-import { getAssociatedTokenAddress, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { getProgram, getPDA, PROGRAM_ID } from './anchor-setup'
+import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { sendAndConfirmTransactionWithLogs } from './transaction-utils'
 
 const PYUSD_MINT = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM')
+
+const DISCRIMINATORS = {
+  createRecurringPayment: Buffer.from([0x21, 0x2b, 0x34, 0xf5, 0x93, 0xb4, 0x06, 0x98]),
+  executeRecurringPayment: Buffer.from([0x06, 0xf9, 0x37, 0x7c, 0xcb, 0x55, 0xf7, 0x5c]),
+  cancelRecurringPayment: Buffer.from([0x3f, 0xbe, 0xb3, 0xc2, 0x1b, 0xc4, 0x91, 0xdc])
+}
 
 export async function createRecurringPayment(
   connection: Connection,
@@ -14,31 +21,47 @@ export async function createRecurringPayment(
   totalPayments: number,
   description: string
 ): Promise<{ recurringPDA: PublicKey; signature: string }> {
-  const program = getProgram(connection, wallet)
+  try {
+    const timestamp = Math.floor(Date.now() / 1000)
+    const [recurringPDA] = getPDA([
+      Buffer.from('recurring'),
+      wallet.publicKey.toBuffer(),
+      Buffer.from(new BN(timestamp).toArray('le', 8))
+    ])
 
-  const timestamp = Math.floor(Date.now() / 1000)
-  const [recurringPDA] = getPDA([
-    Buffer.from('recurring'),
-    wallet.publicKey.toBuffer(),
-    Buffer.from(new BN(timestamp).toArray('le', 8))
-  ])
+    const instructionData = Buffer.concat([
+      DISCRIMINATORS.createRecurringPayment,
+      new BN(amount * 1e6).toArrayLike(Buffer, 'le', 8),
+      recipient.toBuffer(),
+      new BN(intervalSeconds).toArrayLike(Buffer, 'le', 8),
+      new BN(totalPayments).toArrayLike(Buffer, 'le', 8),
+      Buffer.from([description.length]),
+      Buffer.from(description)
+    ])
 
-  const tx = await program.methods
-    .createRecurringPayment(
-      new BN(amount * 1e6), // Convert to 6 decimals
-      recipient,
-      new BN(intervalSeconds),
-      new BN(totalPayments),
-      description
-    )
-    .accounts({
-      recurringPayment: recurringPDA,
-      payer: wallet.publicKey,
-      systemProgram: SystemProgram.programId,
+    const keys = [
+      { pubkey: recurringPDA, isSigner: false, isWritable: true },
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }
+    ]
+
+    const instruction = new TransactionInstruction({
+      keys,
+      programId: PROGRAM_ID,
+      data: instructionData
     })
-    .rpc()
 
-  return { recurringPDA, signature: tx }
+    const transaction = new Transaction().add(instruction)
+    const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true })
+
+    await sendAndConfirmTransactionWithLogs(signature, connection)
+
+    return { recurringPDA, signature }
+  } catch (error: any) {
+    console.error('=== CREATE RECURRING PAYMENT ERROR ===')
+    console.error('Error:', error)
+    throw new Error(`Failed to create recurring payment: ${error?.message || String(error)}`)
+  }
 }
 
 export async function executeRecurringPayment(
@@ -47,38 +70,48 @@ export async function executeRecurringPayment(
   recurringPDA: PublicKey,
   recipientAddress: PublicKey
 ): Promise<string> {
-  const program = getProgram(connection, wallet)
+  try {
+    const payerTokenAccount = getAssociatedTokenAddressSync(
+      PYUSD_MINT,
+      wallet.publicKey,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    )
 
-  const payerTokenAccount = await getAssociatedTokenAddress(
-    PYUSD_MINT,
-    wallet.publicKey,
-    false,
-    TOKEN_2022_PROGRAM_ID
-  )
+    const recipientTokenAccount = getAssociatedTokenAddressSync(
+      PYUSD_MINT,
+      recipientAddress,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    )
 
-  const recipientTokenAccount = await getAssociatedTokenAddress(
-    PYUSD_MINT,
-    recipientAddress,
-    false,
-    TOKEN_2022_PROGRAM_ID
-  )
+    const keys = [
+      { pubkey: recurringPDA, isSigner: false, isWritable: true },
+      { pubkey: wallet.publicKey, isSigner: false, isWritable: true },
+      { pubkey: recipientAddress, isSigner: false, isWritable: true },
+      { pubkey: payerTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: recipientTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: PYUSD_MINT, isSigner: false, isWritable: false },
+      { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false }
+    ]
 
-  const tx = await program.methods
-    .executeRecurringPayment()
-    .accounts({
-      recurringPayment: recurringPDA,
-      payerTokenAccount,
-      recipientTokenAccount,
-      payer: wallet.publicKey,
-      recipient: recipientAddress,
-      mint: PYUSD_MINT,
-      tokenProgram: TOKEN_2022_PROGRAM_ID,
-      associatedTokenProgram: new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
-      systemProgram: SystemProgram.programId,
+    const instruction = new TransactionInstruction({
+      keys,
+      programId: PROGRAM_ID,
+      data: DISCRIMINATORS.executeRecurringPayment
     })
-    .rpc()
 
-  return tx
+    const transaction = new Transaction().add(instruction)
+    const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true })
+
+    await sendAndConfirmTransactionWithLogs(signature, connection)
+
+    return signature
+  } catch (error: any) {
+    console.error('=== EXECUTE RECURRING PAYMENT ERROR ===')
+    console.error('Error:', error)
+    throw new Error(`Failed to execute recurring payment: ${error?.message || String(error)}`)
+  }
 }
 
 export async function cancelRecurringPayment(
@@ -86,17 +119,29 @@ export async function cancelRecurringPayment(
   wallet: any,
   recurringPDA: PublicKey
 ): Promise<string> {
-  const program = getProgram(connection, wallet)
+  try {
+    const keys = [
+      { pubkey: recurringPDA, isSigner: false, isWritable: true },
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: true }
+    ]
 
-  const tx = await program.methods
-    .cancelRecurringPayment()
-    .accounts({
-      recurringPayment: recurringPDA,
-      payer: wallet.publicKey,
+    const instruction = new TransactionInstruction({
+      keys,
+      programId: PROGRAM_ID,
+      data: DISCRIMINATORS.cancelRecurringPayment
     })
-    .rpc()
 
-  return tx
+    const transaction = new Transaction().add(instruction)
+    const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true })
+
+    await sendAndConfirmTransactionWithLogs(signature, connection)
+
+    return signature
+  } catch (error: any) {
+    console.error('=== CANCEL RECURRING PAYMENT ERROR ===')
+    console.error('Error:', error)
+    throw new Error(`Failed to cancel recurring payment: ${error?.message || String(error)}`)
+  }
 }
 
 export async function getRecurringPayment(
@@ -104,11 +149,10 @@ export async function getRecurringPayment(
   wallet: any,
   recurringPDA: PublicKey
 ): Promise<any | null> {
-  const program = getProgram(connection, wallet)
-
   try {
-    const recurring = await program.account.recurringPayment.fetch(recurringPDA)
-    return recurring
+    const accountInfo = await connection.getAccountInfo(recurringPDA)
+    if (!accountInfo) return null
+    return accountInfo
   } catch (error) {
     return null
   }
@@ -118,31 +162,23 @@ export async function getAllUserRecurringPayments(
   connection: Connection,
   wallet: any
 ): Promise<any[]> {
-  const program = getProgram(connection, wallet)
-
   try {
-    const payments = await program.account.recurringPayment.all([
-      {
-        memcmp: {
-          offset: 8, // Discriminator
-          bytes: wallet.publicKey.toBase58(),
+    const accounts = await connection.getProgramAccounts(PROGRAM_ID, {
+      filters: [
+        {
+          dataSize: 200
         }
+      ]
+    })
+
+    return accounts.map(({ pubkey, account }) => ({
+      publicKey: pubkey,
+      account: {
+        data: account.data
       }
-    ])
-    return payments
+    }))
   } catch (error) {
     console.error('Error fetching recurring payments:', error)
     return []
   }
-}
-
-export async function getRecurringPaymentPDA(
-  wallet: PublicKey,
-  createdAt: number
-): Promise<[PublicKey, number]> {
-  return getPDA([
-    Buffer.from('recurring'),
-    wallet.toBuffer(),
-    Buffer.from(new BN(createdAt).toArray('le', 8))
-  ])
 }

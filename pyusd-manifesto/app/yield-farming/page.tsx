@@ -103,10 +103,10 @@ export default function YieldFarmingPage() {
   }
 
   const getTierName = (amount: number): string => {
-    if (amount >= 50000) return '💎 Diamond'
-    if (amount >= 10000) return '🏆 Gold'
-    if (amount >= 1000) return '🥈 Silver'
-    return '🥉 Bronze'
+    if (amount >= 50000) return 'Diamond'
+    if (amount >= 10000) return 'Gold'
+    if (amount >= 1000) return 'Silver'
+    return 'Bronze'
   }
 
   const getTierAPY = (amount: number): number => {
@@ -279,7 +279,7 @@ export default function YieldFarmingPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">💰 PYUSD Manifesto - Yield Farming</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">PYUSD Manifesto - Yield Farming</h1>
           <p className="text-xl text-purple-200">Stake PYUSD and earn passive rewards</p>
         </div>
 
@@ -332,7 +332,7 @@ export default function YieldFarmingPage() {
             {/* User Yield Farming Overview */}
             {userStake && (
               <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6">
-                <h2 className="text-2xl font-bold mb-6">📊 Your Yield Farming Overview</h2>
+                <h2 className="text-2xl font-bold mb-6">Your Yield Farming Overview</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="bg-gray-50 rounded-xl p-6">
@@ -350,7 +350,7 @@ export default function YieldFarmingPage() {
                   <div className="bg-gray-50 rounded-xl p-6">
                     <div className="text-sm text-gray-600 mb-2">Pending Rewards</div>
                     <div className="text-3xl font-bold text-yellow-600">{userStake.pendingRewards.toFixed(4)} PYUSD</div>
-                    <div className="text-sm text-gray-600 mt-2">H ${(userStake.pendingRewards * 1).toFixed(2)}</div>
+                    <div className="text-sm text-gray-600 mt-2">${(userStake.pendingRewards * 1).toFixed(2)}</div>
                   </div>
 
                   <div className="bg-gray-50 rounded-xl p-6">
@@ -384,7 +384,7 @@ export default function YieldFarmingPage() {
                     disabled={loading || (userStake.lockEndTime > Date.now())}
                     className="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold py-3 rounded-lg hover:from-gray-700 hover:to-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    {userStake.lockEndTime > Date.now() ? '🔒  Locked' : 'Unstake'}
+                    {userStake.lockEndTime > Date.now() ? 'Locked' : 'Unstake'}
                   </button>
                 </div>
               </div>
@@ -392,7 +392,7 @@ export default function YieldFarmingPage() {
 
             {/* Yield Farming Form */}
             <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6">
-              <h2 className="text-2xl font-bold mb-6">🔒 Stake PYUSD for Yield Farming</h2>
+              <h2 className="text-2xl font-bold mb-6">Stake PYUSD for Yield Farming</h2>
 
               <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
                 <div className="text-sm text-blue-800">
@@ -533,32 +533,28 @@ export default function YieldFarmingPage() {
 
             {/* Tier Information */}
             <div className="bg-white rounded-2xl shadow-2xl p-8">
-              <h2 className="text-2xl font-bold mb-6">🏅 Yield Farming Tiers & Rewards</h2>
+              <h2 className="text-2xl font-bold mb-6">Yield Farming Tiers & Rewards</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl p-6">
-                  <div className="text-2xl mb-2">🥉</div>
                   <div className="font-bold text-lg mb-2">Bronze</div>
                   <div className="text-sm text-gray-700 mb-4">100 - 999 PYUSD</div>
                   <div className="text-2xl font-bold text-orange-700">8% APY</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl p-6">
-                  <div className="text-2xl mb-2">🥈</div>
                   <div className="font-bold text-lg mb-2">Silver</div>
                   <div className="text-sm text-gray-700 mb-4">1,000 - 9,999 PYUSD</div>
                   <div className="text-2xl font-bold text-gray-700">15% APY</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl p-6">
-                  <div className="text-2xl mb-2">🏆</div>
                   <div className="font-bold text-lg mb-2">Gold</div>
                   <div className="text-sm text-gray-700 mb-4">10,000 - 49,999 PYUSD</div>
                   <div className="text-2xl font-bold text-yellow-700">25% APY</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-100 to-purple-200 rounded-xl p-6">
-                  <div className="text-2xl mb-2">💎</div>
                   <div className="font-bold text-lg mb-2">Diamond</div>
                   <div className="text-sm text-gray-700 mb-4">50,000+ PYUSD</div>
                   <div className="text-2xl font-bold text-purple-700">40% APY</div>

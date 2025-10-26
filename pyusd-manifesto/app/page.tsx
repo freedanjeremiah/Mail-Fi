@@ -14,7 +14,6 @@ export default function Home() {
           </div>
 
           <div className="mb-8">
-            <div className="text-8xl mb-6">✉️💸</div>
             <h1 className="text-7xl font-bold text-white mb-4">Mail-Fi</h1>
             <p className="text-2xl text-purple-400 mb-8 font-semibold">
               Send & Request PYUSD Payments via Email
@@ -44,7 +43,6 @@ export default function Home() {
         {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-            <div className="text-5xl mb-4">⚡</div>
             <h3 className="text-2xl font-bold mb-3 text-white">Instant Transfers</h3>
             <p className="text-gray-400">
               Send PYUSD instantly to anyone with just their email address. No waiting, no delays.
@@ -52,7 +50,6 @@ export default function Home() {
           </div>
 
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-            <div className="text-5xl mb-4">🔒</div>
             <h3 className="text-2xl font-bold mb-3 text-white">Secure & Safe</h3>
             <p className="text-gray-400">
               Built on Solana blockchain with enterprise-grade security. Your funds are always safe.
@@ -60,7 +57,6 @@ export default function Home() {
           </div>
 
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-            <div className="text-5xl mb-4">💰</div>
             <h3 className="text-2xl font-bold mb-3 text-white">Request Payments</h3>
             <p className="text-gray-400">
               Send payment requests via email. Recipients get a beautiful notification and can pay instantly.
@@ -74,7 +70,6 @@ export default function Home() {
 
           <div className="grid md:grid-cols-4 gap-6">
             <Link href="/escrow" className="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:bg-gray-750 hover:border-purple-500 transition">
-              <div className="text-4xl mb-3">🤝</div>
               <h4 className="font-bold text-lg mb-2 text-white">Escrow</h4>
               <p className="text-sm text-gray-400">
                 Secure payments with built-in escrow protection
@@ -82,7 +77,6 @@ export default function Home() {
             </Link>
 
             <Link href="/recurring" className="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:bg-gray-750 hover:border-purple-500 transition">
-              <div className="text-4xl mb-3">🔄</div>
               <h4 className="font-bold text-lg mb-2 text-white">Recurring</h4>
               <p className="text-sm text-gray-400">
                 Set up automatic recurring payments
@@ -90,7 +84,6 @@ export default function Home() {
             </Link>
 
             <Link href="/multisig" className="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:bg-gray-750 hover:border-purple-500 transition">
-              <div className="text-4xl mb-3">👥</div>
               <h4 className="font-bold text-lg mb-2 text-white">Multisig</h4>
               <p className="text-sm text-gray-400">
                 Multi-signature wallets for teams
@@ -98,7 +91,6 @@ export default function Home() {
             </Link>
 
             <Link href="/yield-farming" className="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:bg-gray-750 hover:border-purple-500 transition">
-              <div className="text-4xl mb-3">🌾</div>
               <h4 className="font-bold text-lg mb-2 text-white">Yield Farming</h4>
               <p className="text-sm text-gray-400">
                 Earn rewards on your PYUSD

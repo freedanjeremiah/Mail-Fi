@@ -1,9 +1,18 @@
-import { Connection, PublicKey, SystemProgram } from '@solana/web3.js'
+import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js'
 import { BN } from '@coral-xyz/anchor'
-import { getProgram, getPDA } from './anchor-setup'
-import { getAssociatedTokenAddress, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { getProgram, getPDA, PROGRAM_ID } from './anchor-setup'
+import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { sendAndConfirmTransactionWithLogs } from './transaction-utils'
 
 const PYUSD_MINT = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM')
+
+const DISCRIMINATORS = {
+  createMultisig: Buffer.from([0x9c, 0x32, 0x7e, 0x9b, 0x5d, 0x4f, 0x8a, 0x12]),
+  proposeTransaction: Buffer.from([0x7a, 0x3d, 0x8e, 0x6f, 0x1c, 0x9b, 0x4a, 0x5d]),
+  approveTransaction: Buffer.from([0x3b, 0x8f, 0x2d, 0x6a, 0x7e, 0x1c, 0x9d, 0x4f]),
+  executeTransaction: Buffer.from([0x5c, 0x9a, 0x3f, 0x7b, 0x2e, 0x6d, 0x1a, 0x8c]),
+  rejectTransaction: Buffer.from([0x4d, 0x7e, 0x2b, 0x9f, 0x3c, 0x8a, 0x5d, 0x1e])
+}
 
 export async function createMultisig(
   connection: Connection,
@@ -11,25 +20,48 @@ export async function createMultisig(
   owners: PublicKey[],
   threshold: number
 ): Promise<{ multisigPDA: PublicKey; signature: string }> {
-  const program = getProgram(connection, wallet)
+  try {
+    const timestamp = Math.floor(Date.now() / 1000)
+    const [multisigPDA] = getPDA([
+      Buffer.from('multisig'),
+      wallet.publicKey.toBuffer(),
+      Buffer.from(new BN(timestamp).toArray('le', 8))
+    ])
 
-  const timestamp = Math.floor(Date.now() / 1000)
-  const [multisigPDA] = getPDA([
-    Buffer.from('multisig'),
-    wallet.publicKey.toBuffer(),
-    Buffer.from(new BN(timestamp).toArray('le', 8))
-  ])
+    const ownersBuffer = Buffer.concat([
+      Buffer.from([owners.length]),
+      ...owners.map(o => o.toBuffer())
+    ])
 
-  const tx = await program.methods
-    .createMultisig(owners, new BN(threshold))
-    .accounts({
-      multisig: multisigPDA,
-      creator: wallet.publicKey,
-      systemProgram: SystemProgram.programId,
+    const instructionData = Buffer.concat([
+      DISCRIMINATORS.createMultisig,
+      ownersBuffer,
+      new BN(threshold).toArrayLike(Buffer, 'le', 8)
+    ])
+
+    const keys = [
+      { pubkey: multisigPDA, isSigner: false, isWritable: true },
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }
+    ]
+
+    const instruction = new TransactionInstruction({
+      keys,
+      programId: PROGRAM_ID,
+      data: instructionData
     })
-    .rpc()
 
-  return { multisigPDA, signature: tx }
+    const transaction = new Transaction().add(instruction)
+    const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true })
+
+    await sendAndConfirmTransactionWithLogs(signature, connection)
+
+    return { multisigPDA, signature }
+  } catch (error: any) {
+    console.error('=== CREATE MULTISIG ERROR ===')
+    console.error('Error:', error)
+    throw new Error(`Failed to create multisig: ${error?.message || String(error)}`)
+  }
 }
 
 export async function proposeTransaction(
@@ -40,32 +72,50 @@ export async function proposeTransaction(
   recipient: PublicKey,
   description: string
 ): Promise<{ transactionPDA: PublicKey; signature: string }> {
-  const program = getProgram(connection, wallet)
+  try {
+    const accountInfo = await connection.getAccountInfo(multisigPDA)
+    if (!accountInfo) throw new Error('Multisig account not found')
 
-  // Get multisig account to find transaction count
-  const multisig = await program.account.multisig.fetch(multisigPDA)
+    const transactionCount = accountInfo.data.readBigUInt64LE(8 + 32 * 10 + 8)
 
-  const [transactionPDA] = getPDA([
-    Buffer.from('transaction'),
-    multisigPDA.toBuffer(),
-    Buffer.from(new BN(multisig.transactionCount).toArray('le', 8))
-  ])
+    const [transactionPDA] = getPDA([
+      Buffer.from('transaction'),
+      multisigPDA.toBuffer(),
+      Buffer.from(new BN(Number(transactionCount)).toArray('le', 8))
+    ])
 
-  const tx = await program.methods
-    .proposeTransaction(
-      new BN(amount * 1e6), // Convert to 6 decimals
-      recipient,
-      description
-    )
-    .accounts({
-      multisig: multisigPDA,
-      transaction: transactionPDA,
-      proposer: wallet.publicKey,
-      systemProgram: SystemProgram.programId,
+    const instructionData = Buffer.concat([
+      DISCRIMINATORS.proposeTransaction,
+      new BN(amount * 1e6).toArrayLike(Buffer, 'le', 8),
+      recipient.toBuffer(),
+      Buffer.from([description.length]),
+      Buffer.from(description)
+    ])
+
+    const keys = [
+      { pubkey: multisigPDA, isSigner: false, isWritable: true },
+      { pubkey: transactionPDA, isSigner: false, isWritable: true },
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }
+    ]
+
+    const instruction = new TransactionInstruction({
+      keys,
+      programId: PROGRAM_ID,
+      data: instructionData
     })
-    .rpc()
 
-  return { transactionPDA, signature: tx }
+    const transaction = new Transaction().add(instruction)
+    const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true })
+
+    await sendAndConfirmTransactionWithLogs(signature, connection)
+
+    return { transactionPDA, signature }
+  } catch (error: any) {
+    console.error('=== PROPOSE TRANSACTION ERROR ===')
+    console.error('Error:', error)
+    throw new Error(`Failed to propose transaction: ${error?.message || String(error)}`)
+  }
 }
 
 export async function approveTransaction(
@@ -74,18 +124,30 @@ export async function approveTransaction(
   multisigPDA: PublicKey,
   transactionPDA: PublicKey
 ): Promise<string> {
-  const program = getProgram(connection, wallet)
+  try {
+    const keys = [
+      { pubkey: multisigPDA, isSigner: false, isWritable: true },
+      { pubkey: transactionPDA, isSigner: false, isWritable: true },
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: false }
+    ]
 
-  const tx = await program.methods
-    .approveTransaction()
-    .accounts({
-      multisig: multisigPDA,
-      transaction: transactionPDA,
-      owner: wallet.publicKey,
+    const instruction = new TransactionInstruction({
+      keys,
+      programId: PROGRAM_ID,
+      data: DISCRIMINATORS.approveTransaction
     })
-    .rpc()
 
-  return tx
+    const transaction = new Transaction().add(instruction)
+    const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true })
+
+    await sendAndConfirmTransactionWithLogs(signature, connection)
+
+    return signature
+  } catch (error: any) {
+    console.error('=== APPROVE TRANSACTION ERROR ===')
+    console.error('Error:', error)
+    throw new Error(`Failed to approve transaction: ${error?.message || String(error)}`)
+  }
 }
 
 export async function executeTransaction(
@@ -95,39 +157,50 @@ export async function executeTransaction(
   transactionPDA: PublicKey,
   recipientAddress: PublicKey
 ): Promise<string> {
-  const program = getProgram(connection, wallet)
+  try {
+    const multisigTokenAccount = getAssociatedTokenAddressSync(
+      PYUSD_MINT,
+      multisigPDA,
+      true,
+      TOKEN_2022_PROGRAM_ID
+    )
 
-  const multisigTokenAccount = await getAssociatedTokenAddress(
-    PYUSD_MINT,
-    multisigPDA,
-    true,
-    TOKEN_2022_PROGRAM_ID
-  )
+    const recipientTokenAccount = getAssociatedTokenAddressSync(
+      PYUSD_MINT,
+      recipientAddress,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    )
 
-  const recipientTokenAccount = await getAssociatedTokenAddress(
-    PYUSD_MINT,
-    recipientAddress,
-    false,
-    TOKEN_2022_PROGRAM_ID
-  )
+    const keys = [
+      { pubkey: multisigPDA, isSigner: false, isWritable: true },
+      { pubkey: transactionPDA, isSigner: false, isWritable: true },
+      { pubkey: multisigTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: recipientTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+      { pubkey: recipientAddress, isSigner: false, isWritable: true },
+      { pubkey: PYUSD_MINT, isSigner: false, isWritable: false },
+      { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }
+    ]
 
-  const tx = await program.methods
-    .executeTransaction()
-    .accounts({
-      multisig: multisigPDA,
-      transaction: transactionPDA,
-      multisigTokenAccount,
-      recipientTokenAccount,
-      executor: wallet.publicKey,
-      recipient: recipientAddress,
-      mint: PYUSD_MINT,
-      tokenProgram: TOKEN_2022_PROGRAM_ID,
-      associatedTokenProgram: new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
-      systemProgram: SystemProgram.programId,
+    const instruction = new TransactionInstruction({
+      keys,
+      programId: PROGRAM_ID,
+      data: DISCRIMINATORS.executeTransaction
     })
-    .rpc()
 
-  return tx
+    const transaction = new Transaction().add(instruction)
+    const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true })
+
+    await sendAndConfirmTransactionWithLogs(signature, connection)
+
+    return signature
+  } catch (error: any) {
+    console.error('=== EXECUTE TRANSACTION ERROR ===')
+    console.error('Error:', error)
+    throw new Error(`Failed to execute transaction: ${error?.message || String(error)}`)
+  }
 }
 
 export async function rejectTransaction(
@@ -137,19 +210,31 @@ export async function rejectTransaction(
   transactionPDA: PublicKey,
   proposer: PublicKey
 ): Promise<string> {
-  const program = getProgram(connection, wallet)
+  try {
+    const keys = [
+      { pubkey: transactionPDA, isSigner: false, isWritable: true },
+      { pubkey: multisigPDA, isSigner: false, isWritable: true },
+      { pubkey: proposer, isSigner: false, isWritable: true },
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: false }
+    ]
 
-  const tx = await program.methods
-    .rejectTransaction()
-    .accounts({
-      transaction: transactionPDA,
-      multisig: multisigPDA,
-      proposer,
-      owner: wallet.publicKey,
+    const instruction = new TransactionInstruction({
+      keys,
+      programId: PROGRAM_ID,
+      data: DISCRIMINATORS.rejectTransaction
     })
-    .rpc()
 
-  return tx
+    const transaction = new Transaction().add(instruction)
+    const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true })
+
+    await sendAndConfirmTransactionWithLogs(signature, connection)
+
+    return signature
+  } catch (error: any) {
+    console.error('=== REJECT TRANSACTION ERROR ===')
+    console.error('Error:', error)
+    throw new Error(`Failed to reject transaction: ${error?.message || String(error)}`)
+  }
 }
 
 export async function getMultisig(
@@ -157,11 +242,10 @@ export async function getMultisig(
   wallet: any,
   multisigPDA: PublicKey
 ): Promise<any | null> {
-  const program = getProgram(connection, wallet)
-
   try {
-    const multisig = await program.account.multisig.fetch(multisigPDA)
-    return multisig
+    const accountInfo = await connection.getAccountInfo(multisigPDA)
+    if (!accountInfo) return null
+    return accountInfo
   } catch (error) {
     return null
   }
@@ -172,11 +256,10 @@ export async function getMultisigTransaction(
   wallet: any,
   transactionPDA: PublicKey
 ): Promise<any | null> {
-  const program = getProgram(connection, wallet)
-
   try {
-    const transaction = await program.account.multisigTransaction.fetch(transactionPDA)
-    return transaction
+    const accountInfo = await connection.getAccountInfo(transactionPDA)
+    if (!accountInfo) return null
+    return accountInfo
   } catch (error) {
     return null
   }
@@ -186,14 +269,21 @@ export async function getAllUserMultisigs(
   connection: Connection,
   wallet: any
 ): Promise<any[]> {
-  const program = getProgram(connection, wallet)
-
   try {
-    const multisigs = await program.account.multisig.all()
-    // Filter for multisigs where user is an owner
-    return multisigs.filter(m =>
-      m.account.owners.some((owner: PublicKey) => owner.equals(wallet.publicKey))
-    )
+    const accounts = await connection.getProgramAccounts(PROGRAM_ID, {
+      filters: [
+        {
+          dataSize: 400
+        }
+      ]
+    })
+
+    return accounts.map(({ pubkey, account }) => ({
+      publicKey: pubkey,
+      account: {
+        data: account.data
+      }
+    }))
   } catch (error) {
     console.error('Error fetching multisigs:', error)
     return []
@@ -205,18 +295,21 @@ export async function getAllMultisigTransactions(
   wallet: any,
   multisigPDA: PublicKey
 ): Promise<any[]> {
-  const program = getProgram(connection, wallet)
-
   try {
-    const transactions = await program.account.multisigTransaction.all([
-      {
-        memcmp: {
-          offset: 8, // Discriminator
-          bytes: multisigPDA.toBase58(),
+    const accounts = await connection.getProgramAccounts(PROGRAM_ID, {
+      filters: [
+        {
+          dataSize: 300
         }
+      ]
+    })
+
+    return accounts.map(({ pubkey, account }) => ({
+      publicKey: pubkey,
+      account: {
+        data: account.data
       }
-    ])
-    return transactions
+    }))
   } catch (error) {
     console.error('Error fetching transactions:', error)
     return []

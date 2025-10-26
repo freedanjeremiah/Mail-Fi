@@ -94,7 +94,7 @@ export default function MailPage() {
   const handleSendMoney = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!publicKey || !wallet.connected || !wallet.signTransaction) {
-      setStatus({ message: '❌ Please connect your wallet', type: 'error' })
+      setStatus({ message: 'Please connect your wallet', type: 'error' })
       return
     }
 
@@ -120,7 +120,7 @@ export default function MailPage() {
         TOKEN_2022_PROGRAM_ID
       )
 
-      console.log('💸 Sending PYUSD:', {
+      console.log('Sending PYUSD:', {
         from: senderTokenAccount.toBase58(),
         to: recipientTokenAccount.toBase58(),
         amount
@@ -153,7 +153,7 @@ export default function MailPage() {
 
       await connection.confirmTransaction(signature, 'confirmed')
 
-      console.log('✅ Transaction confirmed:', signature)
+      console.log('Transaction confirmed:', signature)
 
       // Send email notification
       try {
@@ -181,9 +181,9 @@ export default function MailPage() {
         signature
       })
 
-      setStatus({ 
-        message: `✅ ${amount} PYUSD sent! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`, 
-        type: 'success' 
+      setStatus({
+        message: `${amount} PYUSD sent! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+        type: 'success'
       })
       
       setRecipientEmail('')
@@ -195,7 +195,7 @@ export default function MailPage() {
       await loadBalance()
     } catch (error: any) {
       console.error('Send error:', error)
-      setStatus({ message: `❌ ${error.message}`, type: 'error' })
+      setStatus({ message: `${error.message}`, type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -204,7 +204,7 @@ export default function MailPage() {
   const handleRequestMoney = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!publicKey || !wallet.connected) {
-      setStatus({ message: '❌ Please connect your wallet', type: 'error' })
+      setStatus({ message: 'Please connect your wallet', type: 'error' })
       return
     }
 
@@ -220,12 +220,12 @@ export default function MailPage() {
         recipientWallet: publicKey.toString(),
       })
 
-      setStatus({ message: '✅ Payment request sent successfully!', type: 'success' })
+      setStatus({ message: 'Payment request sent successfully!', type: 'success' })
       setRequestEmail('')
       setRequestAmount('')
       setRequestDescription('')
     } catch (error: any) {
-      setStatus({ message: `❌ ${error.message}`, type: 'error' })
+      setStatus({ message: `${error.message}`, type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -239,7 +239,7 @@ export default function MailPage() {
           <div className="flex items-center justify-between p-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">✉️</span>
+                <span className="text-2xl font-bold text-white">M</span>
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">Mail-Fi</h1>
@@ -269,7 +269,7 @@ export default function MailPage() {
                         : 'text-gray-300 hover:bg-gray-800'
                     }`}
                   >
-                    <span className="mr-2">💸</span> Send Money
+                    Send Money
                   </button>
                   <button
                     onClick={() => setActiveTab('request')}
@@ -279,7 +279,7 @@ export default function MailPage() {
                         : 'text-gray-300 hover:bg-gray-800'
                     }`}
                   >
-                    <span className="mr-2">💰</span> Request Money
+                    Request Money
                   </button>
                   <button
                     onClick={() => setActiveTab('history')}
@@ -289,7 +289,7 @@ export default function MailPage() {
                         : 'text-gray-300 hover:bg-gray-800'
                     }`}
                   >
-                    <span className="mr-2">📜</span> Transaction History
+                    Transaction History
                   </button>
                 </div>
 
@@ -443,26 +443,25 @@ export default function MailPage() {
 
                 {activeTab === 'history' && (
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Transaction History</h2>
+                    <h2 className="text-2xl font-bold text-white mb-6">Transaction History</h2>
 
                     {transactions.length === 0 ? (
                       <div className="text-center py-12">
-                        <div className="text-6xl mb-4">📭</div>
-                        <p className="text-gray-600">No transactions yet</p>
+                        <p className="text-gray-400">No transactions yet</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {transactions.map((tx, index) => (
-                          <div key={index} className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-purple-300 transition">
+                          <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500 transition">
                             <div className="flex items-center gap-4">
                               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                tx.type === 'sent' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                                tx.type === 'sent' ? 'bg-red-900 text-red-400' : 'bg-green-900 text-green-400'
                               }`}>
                                 {tx.type === 'sent' ? '↑' : '↓'}
                               </div>
                               <div>
-                                <div className="font-medium text-gray-900">{tx.description}</div>
-                                <div className="text-sm text-gray-600">
+                                <div className="font-medium text-white">{tx.description}</div>
+                                <div className="text-sm text-gray-400">
                                   {tx.email || `${tx.address.substring(0, 8)}...${tx.address.substring(tx.address.length - 6)}`}
                                 </div>
                                 <div className="text-xs text-gray-500">
@@ -471,7 +470,7 @@ export default function MailPage() {
                               </div>
                             </div>
                             <div className={`text-lg font-semibold ${
-                              tx.type === 'sent' ? 'text-red-600' : 'text-green-600'
+                              tx.type === 'sent' ? 'text-red-500' : 'text-green-500'
                             }`}>
                               {tx.type === 'sent' ? '-' : '+'} ${tx.amount.toFixed(2)}
                             </div>
@@ -484,9 +483,9 @@ export default function MailPage() {
 
                 {status && (
                   <div className={`mt-6 p-4 rounded-lg ${
-                    status.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-                    status.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-                    'bg-blue-50 text-blue-800 border border-blue-200'
+                    status.type === 'success' ? 'bg-green-900 text-green-200 border border-green-700' :
+                    status.type === 'error' ? 'bg-red-900 text-red-200 border border-red-700' :
+                    'bg-blue-900 text-blue-200 border border-blue-700'
                   }`}>
                     {status.message}
                   </div>
@@ -495,10 +494,9 @@ export default function MailPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-            <div className="text-6xl mb-4">🔐</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Connect Your Wallet</h2>
-            <p className="text-gray-600 mb-6">Connect your Solana wallet to start sending and requesting PYUSD payments</p>
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-12 text-center">
+            <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
+            <p className="text-gray-400 mb-6">Connect your Solana wallet to start sending and requesting PYUSD payments</p>
             <div className="flex justify-center">
               <WalletButton />
             </div>

@@ -90,14 +90,14 @@ export default function EscrowPage() {
 
     // Check if wallet is connected
     if (!publicKey || !wallet.connected) {
-      setStatus({ message: '❌ Please connect your wallet first', type: 'error' })
+      setStatus({ message: 'Please connect your wallet first', type: 'error' })
       return
     }
     
     console.log('Creating escrow with wallet:', publicKey.toBase58())
 
     if (!recipient || !amount) {
-      setStatus({ message: '❌ Please fill in all fields', type: 'error' })
+      setStatus({ message: 'Please fill in all fields', type: 'error' })
       return
     }
 
@@ -119,7 +119,7 @@ export default function EscrowPage() {
       await connection.confirmTransaction(signature, 'confirmed')
 
       setStatus({
-        message: `✅ Escrow created! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+        message: `Escrow created! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
         type: 'success'
       })
 
@@ -130,7 +130,7 @@ export default function EscrowPage() {
       setActiveTab('manage')
     } catch (error: any) {
       console.error('Create escrow error:', error)
-      setStatus({ message: `❌ ${error.message || 'Failed to create escrow'}`, type: 'error' })
+      setStatus({ message: `${error.message || 'Failed to create escrow'}`, type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -138,7 +138,7 @@ export default function EscrowPage() {
 
   const handleFundEscrow = async (escrowPDA: string) => {
     if (!publicKey || !wallet.connected) {
-      setStatus({ message: '❌ Wallet not connected', type: 'error' })
+      setStatus({ message: 'Wallet not connected', type: 'error' })
       return
     }
     
@@ -153,7 +153,7 @@ export default function EscrowPage() {
       await connection.confirmTransaction(signature, 'confirmed')
 
       setStatus({
-        message: `✅ Escrow funded! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+        message: `Escrow funded! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
         type: 'success'
       })
 
@@ -161,7 +161,7 @@ export default function EscrowPage() {
       await loadPYUSDBalance()
     } catch (error: any) {
       console.error('Fund escrow error:', error)
-      setStatus({ message: `❌ ${error.message || 'Failed to fund escrow'}`, type: 'error' })
+      setStatus({ message: `${error.message || 'Failed to fund escrow'}`, type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -169,7 +169,7 @@ export default function EscrowPage() {
 
   const handleClaimEscrow = async (escrowPDA: string) => {
     if (!publicKey) {
-      setStatus({ message: '❌ Wallet not connected', type: 'error' })
+      setStatus({ message: 'Wallet not connected', type: 'error' })
       return
     }
     
@@ -184,7 +184,7 @@ export default function EscrowPage() {
       await connection.confirmTransaction(signature, 'confirmed')
 
       setStatus({
-        message: `✅ Escrow claimed! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+        message: `Escrow claimed! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
         type: 'success'
       })
 
@@ -192,7 +192,7 @@ export default function EscrowPage() {
       await loadPYUSDBalance()
     } catch (error: any) {
       console.error('Claim escrow error:', error)
-      setStatus({ message: `❌ ${error.message || 'Failed to claim escrow'}`, type: 'error' })
+      setStatus({ message: `${error.message || 'Failed to claim escrow'}`, type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -200,7 +200,7 @@ export default function EscrowPage() {
 
   const handleCancelEscrow = async (escrowPDA: string) => {
     if (!publicKey) {
-      setStatus({ message: '❌ Wallet not connected', type: 'error' })
+      setStatus({ message: 'Wallet not connected', type: 'error' })
       return
     }
     
@@ -217,7 +217,7 @@ export default function EscrowPage() {
       await connection.confirmTransaction(signature, 'confirmed')
 
       setStatus({
-        message: `✅ Escrow cancelled! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+        message: `Escrow cancelled! View: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
         type: 'success'
       })
 
@@ -225,7 +225,7 @@ export default function EscrowPage() {
       await loadPYUSDBalance()
     } catch (error: any) {
       console.error('Cancel escrow error:', error)
-      setStatus({ message: `❌ ${error.message || 'Failed to cancel escrow'}`, type: 'error' })
+      setStatus({ message: `${error.message || 'Failed to cancel escrow'}`, type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -236,7 +236,7 @@ export default function EscrowPage() {
       <WalletDebug />
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">💰 Escrow Payments</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">Escrow Payments</h1>
           <p className="text-xl text-purple-200">Secure PYUSD payments with time locks</p>
         </div>
 
