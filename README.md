@@ -316,24 +316,3 @@ mailfiTriggerPaymentDetection();
 
 ---
 
-## License
-
-MIT License - see [LICENSE](LICENSE) file
-
----
-
-## Acknowledgments
-
-- **Avail Project** - Nexus SDK and cross-chain infrastructure
-- **OpenZeppelin** - Secure smart contract libraries
-- **Ethereum Foundation** - Blockchain infrastructure
-- **Magic.link** - Email-based wallet authentication
-
----
-
-## Links
-
-- [Avail Nexus Explorer](https://explorer.nexus-folly.availproject.org/)
-- [Investment Escrow Contract](https://sepolia.basescan.org/address/0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c)
-- [Test Wallet Transactions](https://sepolia.arbiscan.io/address/0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25#tokentxns)
-- [Base Sepolia Explorer](https://sepolia.basescan.org/)
