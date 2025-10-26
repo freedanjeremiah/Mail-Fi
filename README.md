@@ -1,319 +1,339 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mail-Fi: Cross-Chain Payments in Gmail via Avail Nexus
 
-## Getting Started
+Mail-Fi is a Chrome extension that integrates Avail Nexus SDK directly into Gmail, enabling cross-chain cryptocurrency payments and startup investments without leaving your email interface.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Overview
+
+Mail-Fi solves three critical problems in cryptocurrency adoption:
+
+1. **Payment Complexity** - Eliminates manual wallet address management and chain switching
+2. **Fragmented Fundraising** - Enables startup investment pitches directly via email
+3. **Cross-Chain Friction** - Leverages Avail Nexus for automatic asset bridging
+
+---
+
+## Key Features
+
+**Payment System**
+- Send USDC/ETH from Gmail compose window to any Ethereum address
+- Automatically detect payment requests in received emails
+- Cross-chain transfers via Avail Nexus with single-click approval
+- Insert blockchain-verified receipts into email body
+
+**Investment Platform**
+- Email-based fundraising for startups
+- Smart contract escrow with admin approval workflow
+- Multi-chain funding via Nexus automatic bridging
+- Automated refunds for failed or rejected projects
+
+**Developer Tools**
+- Full Nexus widget integration (TransferButton, BridgeButton, BridgeAndExecuteButton)
+- Hybrid wallet support (Magic.link + MetaMask)
+- Modular architecture extensible to other email providers
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Gmail Interface                                            │
+│  └── Chrome Extension (Manifest V3)                         │
+│      ├── Content Scripts (payment detection & injection)    │
+│      └── Injected Nexus SDK (nexus-ca.js)                   │
+├─────────────────────────────────────────────────────────────┤
+│  Next.js Payment UI (localhost:3000)                        │
+│  ├── /nexus-panel (Payment interface)                       │
+│  ├── /investment (Investment interface)                     │
+│  └── Wallet Providers (Magic.link + MetaMask)               │
+├─────────────────────────────────────────────────────────────┤
+│  Avail Nexus SDK                                            │
+│  └── Intent-based cross-chain routing                       │
+├─────────────────────────────────────────────────────────────┤
+│  Smart Contracts (Base Sepolia)                             │
+│  ├── Investment Escrow (0x1302C9F6...)                      │
+│  └── DeFi Contracts (Vault, Lending, Yield)                 │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Technology Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Frontend**: Next.js 15.5.6, React 19, TypeScript 5, Tailwind CSS 4
+**Web3**: Viem 2.38.3, Wagmi 2.18.2, @avail-project/nexus-widgets 0.0.5, ConnectKit 1.9.1
+**Smart Contracts**: Solidity ^0.8.20, OpenZeppelin (ReentrancyGuard, SafeERC20)
+**Extension**: Chrome Manifest V3, esbuild bundler
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Smart Contracts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### USDC Investment Escrow
+**Network**: Base Sepolia (Chain ID: 84532)
+**Contract**: [0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c](https://sepolia.basescan.org/address/0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c)
+**USDC Token**: [0x036CbD53842c5426634e7929541eC2318f3dCF7e](https://sepolia.basescan.org/token/0x036CbD53842c5426634e7929541eC2318f3dCF7e)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Core Functions**:
+- `createProject()` - Founders launch fundraising campaigns
+- `invest()` - Investors contribute USDC with min/max validation
+- `approveProject()` / `rejectProject()` - Admin-gated approval workflow
+- `releaseFunds()` - Founder claims after approval + deadline
+- `refund()` - Investors reclaim funds if rejected/failed
 
-## Deploy on Vercel
+**Security**: ReentrancyGuard, SafeERC20, admin access control, escrow pattern, automatic refunds
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Additional Contracts
+- **Mail Vault**: Time-locked USDC transfers with email metadata
+- **Lending Pool**: Deposit/borrow with per-second interest calculation
+- **Limit Order**: ERC20 swaps at target prices
+- **Yield Farm**: Staking rewards distribution
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
 
-## Mail-Fi: Avail Nexus Payments in Gmail
+## Avail Nexus Integration
 
-Chrome extension that enables cross-chain crypto payments directly in Gmail using Avail Nexus SDK. Supports both **sending payments** (compose) and **requesting payments** (received emails).
+Mail-Fi uses three Nexus widgets for cross-chain operations:
 
-### 🚀 Quick Start
+### TransferButton
+Cross-chain USDC/ETH transfers with automatic routing.
 
-**1. Build extension:**
+```typescript
+<TransferButton
+  prefill={{
+    chainId: 11155420,  // Optimism Sepolia
+    token: "USDC",
+    amount: "0.01",
+    recipient: "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25",
+  }}
+  onSuccess={(result) => {
+    window.opener.postMessage({
+      type: 'MAILFI_PAYMENT_SUCCESS',
+      data: { txHash: result?.txHash, intentId: result?.intentId }
+    }, '*');
+  }}
+/>
+```
+
+### BridgeButton
+Token bridging between chains (e.g., Ethereum Sepolia → Arbitrum Sepolia).
+
+### BridgeAndExecuteButton
+Bridge USDC to destination chain and execute contract call in single transaction.
+
+```typescript
+<BridgeAndExecuteButton
+  contractAddress="0xBfC91D59fdAA134A4ED45f7B584cAf96D7792Eff"  // Aave Pool
+  functionName="supply"
+  buildFunctionParams={(token, amount, chainId, userAddress) => ({
+    functionParams: [tokenAddress, parseUnits(amount, 6), userAddress, 0]
+  })}
+  prefill={{ toChainId: 421614, token: "USDC" }}
+/>
+```
+
+**Configuration**: Testnet mode with custom RPC endpoints for 12 chains (Ethereum, Arbitrum, Optimism, Base, Polygon, Avalanche, BSC - both testnets and mainnets).
+
+---
+
+## Installation
+
+### Prerequisites
+- Node.js 18+, npm
+- Google Chrome browser
+- MetaMask wallet extension
+- USDC on testnet chains
+
+### Setup
+
 ```bash
+# Clone and install
+git clone https://github.com/freedanjeremiah/mail-fi.git
+cd mail-fi
+npm install
+
+# Build extension
 npm run build:ext
+
+# Start Next.js server
+npm run dev  # Runs at localhost:3000
 ```
 
-**2. Load in Chrome:**
-```
-chrome://extensions → Enable "Developer mode" → "Load unpacked" → Select dist/extension
-```
-
-**3. Start development server:**
-```bash
-npm run dev
-# Server runs on http://localhost:3000
-```
-
-### 💳 Payment Features
-
-#### **Sending Payments (Compose Window)**
-1. **Go to Gmail** → Click "Compose"
-2. **To field:** Enter recipient's wallet address: `0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb`
-3. **Subject:** Enter amount and destination: `0.01 USDC to Optimism Sepolia`
-4. **Click "Pay with Avail"** button
-5. **Payment window opens** → Connect wallet → Complete payment
-6. **Payment snippet** inserted in email body
-
-#### **Requesting Payments (Received Emails)**
-1. **Send payment request email** with content:
-   ```
-   I'm requesting a payment of 0.001 USDC from Ethereum Sepolia to Optimism Sepolia.
-   
-   My wallet address: 0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25
-   
-   Please use the "Pay with Avail" button to complete this payment.
-   ```
-2. **Recipient opens email** → Extension detects payment request
-3. **"Pay with Avail" button appears** in email with payment details
-4. **Click button** → Opens nexus-panel with pre-filled data
-5. **Complete payment** using Avail Nexus
-
-### 🔧 Supported Features
-
-**Tokens:** USDC, ETH, USDT, DAI, PYUSD
-**Chains:** Ethereum Sepolia, Arbitrum Sepolia, Optimism Sepolia, Base Sepolia, Polygon Amoy
-**Wallets:** Magic.link (email-based), MetaMask (hybrid approach)
-**Payment Types:** Direct transfers, cross-chain bridging, payment requests
-
-### How It Works
-
-1. **Put wallet address in "To" field**: `0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb`
-2. **Put amount and destination in "Subject" field**: `0.01 USDC to Optimism Sepolia` or `1 USDC to Arbitrum Sepolia`
-3. **Click button**: "Pay with Avail"
-4. **Payment window opens**: Shows recipient, amount, and destination chain
-5. **Connect wallet**: MetaMask connection
-6. **Click "Send Payment"**: Triggers Nexus TransferButton widget
-7. **Nexus modal appears**: Intent approval UI
-8. **Sign in MetaMask**: Transaction signature
-9. **Done**: Payment complete, snippet inserted in email
-
-### Tech Stack
-
-- Nexus Widgets: `@avail-project/nexus-widgets` (TransferButton, BridgeButton)
-- Nexus SDK Bundle: From `nexus-hyperliquid-poc` (nexusCA.js for in-page support)
-- Payment UI: Next.js app at localhost:3000
-- Extension: Chrome Manifest V3
-
-### How to Use
-
-**1. Reload extension:**
-```
-chrome://extensions → Click reload icon on Mail-Fi extension
-```
-
-**2. Go to Gmail:**
-```
-https://mail.google.com → Click "Compose"
-```
-
-**3. Enter wallet address in Gmail's "To" field:**
-```
-To: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
-```
-(Replace the email address with the recipient's Ethereum wallet address)
-
-**4. Enter amount and destination in Gmail's "Subject" field:**
-```
-Subject: 0.01 USDC to Optimism Sepolia
-```
-or
-```
-Subject: 1 USDC to Arbitrum Sepolia
-```
-(Extension extracts amount and destination chain)
-
-**5. Click "Pay with Avail" button:**
-- Payment window opens (500x700)
-- Shows recipient address and amount
-
-**6. Connect wallet & pay:**
-- Click "Connect Wallet" button
-- Choose MetaMask
-- Switch to Optimism Sepolia if prompted
-- Click "Send Payment"
-- Nexus widget modal appears
-- Approve intent
-- Sign in MetaMask
-- Done!
-
-**7. Payment snippet inserted in email:**
-```
-Paid 0.001 USDC via Avail. Transaction: 0xabc123...
-```
-
-### 🛠️ Technical Details
-
-**Extension Architecture:**
-- **Content Scripts:** `gmail.ts` (compose), `gmail-payment-requests.ts` (received emails)
-- **Nexus Integration:** Injected `nexus-ca.js` for in-page widget support
-- **Payment UI:** Next.js app at `localhost:3000/nexus-panel`
-- **Wallet Integration:** Magic.link + MetaMask hybrid approach
-
-**Key Files:**
-- `extension/content/gmail.ts` - Main Gmail integration
-- `extension/content/gmail-payment-requests.ts` - Payment request detection
-- `src/app/nexus-panel/page.tsx` - Payment interface
-- `extension/content/email-wallet-mapping.ts` - Email-to-wallet mapping
-
-### 🐛 Debugging & Troubleshooting
-
-**Check Extension Status:**
+**Load Extension in Chrome**:
 1. Go to `chrome://extensions/`
-2. Ensure "Mail-Fi: Avail in Gmail" is enabled
-3. Reload extension if needed
+2. Enable "Developer mode"
+3. Click "Load unpacked" → Select `dist/extension`
 
-**Debug Payment Requests:**
-1. Open Gmail → Open email with payment request
-2. Press `F12` → Console tab
-3. Look for `[Mail-Fi]` messages
-4. Manual trigger: `mailfiTriggerPaymentDetection()`
+---
 
-**Common Issues:**
-- **Button not appearing:** Check console for detection errors
-- **Payment window not opening:** Verify `localhost:3000` is running
-- **Wallet connection fails:** Ensure Magic.link API key is set in `.env.local`
+## Usage
 
-**Environment Variables:**
+### Send Payment
+
+1. Gmail → Compose
+2. **To**: Enter recipient's Ethereum address (e.g., `0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25`)
+3. **Subject**: Enter amount and chain (e.g., `0.01 USDC to Optimism Sepolia`)
+4. Click "Pay with Avail" button
+5. Approve transaction in Nexus popup
+6. Receipt auto-inserted into email
+
+### Invest in Startup
+
+1. Receive email with investment details:
+   ```
+   Investment Opportunity: AI Healthcare Platform
+   Target Raise: 50,000 USDC
+   Equity Offered: 10%
+   Contract Address: 0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c
+   Project ID: 1
+   ```
+2. Extension detects keywords and injects "Invest in Project" button
+3. Click button → Review project details from smart contract
+4. Click "Invest with Avail Nexus"
+5. Nexus bridges USDC to Base Sepolia escrow contract
+6. Funds locked pending admin approval
+
+---
+
+## Supported Networks
+
+### Testnets
+| Network | Chain ID | USDC Address |
+|---------|----------|--------------|
+| Ethereum Sepolia | 11155111 | 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238 |
+| Optimism Sepolia | 11155420 | 0x5a719cf3C02dBea581bA2D922906B81fC0A61d1D |
+| Base Sepolia | 84532 | 0x036CbD53842c5426634e7929541eC2318f3dCF7e |
+
+### Mainnets (Configured)
+Ethereum, Arbitrum, Optimism, Base, Polygon, Avalanche, BSC
+
+---
+
+## Live Transactions
+
+### Avail Nexus Intents
+- **Intent #1106**: [Cross-chain USDC transfer](https://explorer.nexus-folly.availproject.org/intent/1106)
+- **Intent #1108**: [Payment request fulfillment](https://explorer.nexus-folly.availproject.org/intent/1108)
+- **Intent #1084**: [Investment escrow funding](https://explorer.nexus-folly.availproject.org/intent/1084)
+- **Intent #1275**: [Bridge and execute operation](https://explorer.nexus-folly.availproject.org/intent/1275)
+
+### Wallet Activity
+**Test Wallet**: [0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25](https://sepolia.arbiscan.io/address/0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25#tokentxns)
+
+---
+
+## Project Structure
+
+```
+mail-fi/
+├── contracts/                      # Solidity smart contracts
+│   ├── USDC_InvestmentEscrow.sol
+│   ├── Mailvault.sol
+│   ├── Lend.sol
+│   ├── LimitOrder.sol
+│   └── YieldFarmingContract.sol
+├── extension/                      # Chrome extension
+│   ├── manifest.json
+│   ├── content/                    # Gmail integration scripts
+│   └── injected/nexus-ca.js        # Nexus SDK bundle
+├── src/
+│   ├── app/
+│   │   ├── nexus-panel/page.tsx    # Payment UI
+│   │   ├── investment/page.tsx     # Investment UI
+│   │   └── components/             # React components
+│   └── lib/
+│       ├── contract-config.ts      # Addresses/ABIs
+│       └── tokenMapping.ts
+└── scripts/
+    └── build-extension.ts          # Extension bundler
+```
+
+---
+
+## Security
+
+**Smart Contract**:
+- OpenZeppelin ReentrancyGuard, SafeERC20
+- Admin/founder/investor access control
+- Escrow pattern with automatic refunds
+- Gas optimizations (immutable variables, mapping lookups)
+
+**Extension**:
+- Manifest V3 compliance
+- Host-restricted permissions (`mail.google.com`, `localhost:3000`)
+- postMessage origin verification
+- Transaction data sanitization
+
+---
+
+## Development
+
 ```bash
-# .env.local
-NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY=pk_live_F7EEF952E3688610
-NEXT_PUBLIC_DEFAULT_WALLET_ADDRESS=0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25
-NEXT_PUBLIC_WALLET_API_URL=http://localhost:3000/api/wallet-lookup
+# Development server
+npm run dev
+
+# Build extension
+npm run build:ext
+
+# Watch mode (auto-rebuild)
+npm run watch:ext
+
+# Production build
+npm run build
 ```
 
-### 📋 Requirements
+**Debugging**:
+```javascript
+// Check extension in browser console
+console.log('[Mail-Fi] Extension loaded');
 
-**For Sending Payments:**
-- MetaMask installed
-- USDC/ETH on supported chains
-- ETH for gas fees
-
-**For Payment Requests:**
-- Extension installed and enabled
-- Email with payment request keywords
-- Valid wallet address in email content
-
-**Development:**
-- Node.js 18+
-- Chrome browser
-- Next.js development server running on port 3000
-
-### 🔧 Current Implementation Status
-
-**✅ Working Features:**
-- **Compose Payments:** Send crypto payments from Gmail compose window
-- **Payment Requests:** Detect and show "Pay with Avail" buttons in received emails
-- **Cross-chain Support:** Ethereum Sepolia, Arbitrum Sepolia, Optimism Sepolia, Base Sepolia, Polygon Amoy
-- **Token Support:** USDC, ETH, USDT, DAI, PYUSD
-- **Wallet Integration:** Magic.link + MetaMask hybrid approach
-- **Dynamic UI:** Button updates based on detected token type
-- **Email-to-Wallet Mapping:** Lookup wallet addresses from email addresses
-
-**🔄 Technical Implementation:**
-- **Extension:** Chrome Manifest V3 with content scripts
-- **Nexus SDK:** Injected `nexus-ca.js` for in-page widget support
-- **Payment UI:** Next.js app with enhanced animations and professional design
-- **Magic.link Integration:** Email-based authentication with viem-compatible providers
-- **Error Handling:** Comprehensive try-catch blocks and graceful fallbacks
-- **DOM Detection:** Robust selectors for Gmail's dynamic interface
-
-**⚠️ Known Issues:**
-- **Port Conflict:** Development server may use port 3001 if 3000 is occupied
-- **WalletConnect Warnings:** Multiple initialization warnings (non-critical)
-- **Hydration Errors:** Suppressed with `suppressHydrationWarning={true}`
-- **PYUSD Processing:** Currently placeholder (custom logic to be implemented)
-
-## 🚀 Investment Opportunities
-
-Mail-Fi now supports **investment opportunities** through email! Startups can send investment emails that recipients can fund directly from their Gmail inbox.
-
-### 📧 Investment Email Template
-
-**Subject:** Investment Opportunity: TechStart AI - 10% equity for 50,000 USDC
-
-**Body:**
-```
-🚀 Investment Opportunity: TechStart AI
-
-Project: TechStart AI
-Description: Revolutionary AI platform for healthcare diagnostics using machine learning to detect diseases early and improve patient outcomes.
-
-Category: Healthcare Technology
-Target Raise: 50,000 USDC
-Equity Offered: 10%
-Valuation: 500,000 USDC
-Minimum Investment: 1,000 USDC
-Maximum Investment: 10,000 USDC
-Deadline: 30 days
-
-Contract Address: 0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c
-Project ID: 1
-
-Invest now to be part of the future of healthcare AI!
-
-My wallet address: 0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25
+// Manually trigger payment detection
+mailfiTriggerPaymentDetection();
 ```
 
-### 🔍 Investment Detection Keywords
+---
 
-The extension automatically detects emails containing:
-- `investment opportunity`
-- `invest in`
-- `equity offering`
-- `startup funding`
-- `project investment`
-- `contract address`
-- `project id`
-- `equity for`
-- `valuation`
-- `minimum investment`
+## Roadmap
 
-### 💰 Investment Flow
+**Phase 1 (Current)**: Chrome extension, Nexus integration, testnet deployment
+**Phase 2 (Q2 2025)**: Mainnet deployment, PYUSD support, mobile interface
+**Phase 3 (Q3 2025)**: Outlook/Yahoo support, DeFi UI features, DAO governance
+**Phase 4 (Q4 2025)**: Enterprise API, KYC/AML compliance, white-label solution
 
-1. **Email Detection** - Extension scans received emails for investment keywords
-2. **Data Extraction** - Extracts project details, contract address, and project ID
-3. **Button Injection** - Shows "Invest in [Project Name]" button in email
-4. **Investment Interface** - Opens investment interface with project details
-5. **Smart Contract Interaction** - Allows investors to invest USDC through the contract
-6. **Transaction Confirmation** - Shows success message and updates email button
+---
 
-### 🔒 Smart Contract Integration
+## Contributing
 
-**Deployed Contract:**
-- **Address:** `0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c`
-- **Network:** Base Sepolia (Chain ID: 84532)
-- **USDC Token:** `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
+1. Fork repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add feature'`
+4. Push: `git push origin feature/amazing-feature`
+5. Open Pull Request
 
-**Security Features:**
-- Funds held in escrow until project approval
-- Admin approval required before funds are released
-- Investors can refund if project is rejected
-- Smart contract ensures secure fund management
-- All transactions are recorded on-chain
+**Standards**: TypeScript, Prettier/ESLint formatting, JSDoc comments, smart contract tests
 
-### 🧪 Testing Investment Flow
+---
 
-1. **Send Test Email** using the template above
-2. **Open email in Gmail** - Look for "Invest in [Project Name]" button
-3. **Click investment button** - Opens investment interface
-4. **Connect wallet** and test investment process
-5. **Confirm transaction** - Verify success message
+## License
 
-**🎯 Next Steps:**
-- Implement custom PYUSD payment processing
-- Add more chain support as needed
-- Optimize wallet connection flow
-- Enhanced error messaging for users
+MIT License - see [LICENSE](LICENSE) file
+
+---
+
+## Acknowledgments
+
+- **Avail Project** - Nexus SDK and cross-chain infrastructure
+- **OpenZeppelin** - Secure smart contract libraries
+- **Ethereum Foundation** - Blockchain infrastructure
+- **Magic.link** - Email-based wallet authentication
+
+---
+
+## Links
+
+- [Avail Nexus Explorer](https://explorer.nexus-folly.availproject.org/)
+- [Investment Escrow Contract](https://sepolia.basescan.org/address/0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c)
+- [Test Wallet Transactions](https://sepolia.arbiscan.io/address/0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25#tokentxns)
+- [Base Sepolia Explorer](https://sepolia.basescan.org/)
