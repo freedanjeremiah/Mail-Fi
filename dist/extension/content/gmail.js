@@ -1810,41 +1810,71 @@ function extractPaymentRequest(emailElement) {
     });
     const searchText = (subject + " " + bodyText + " " + fullText).toLowerCase();
     const isPaymentRequest = searchText.includes("payment request") || searchText.includes("please pay") || searchText.includes("invoice") || searchText.includes("my wallet address") || searchText.includes("requesting a payment") || searchText.includes("pay with avail");
-    console.log("[Mail-Fi] Payment request detection:", { isPaymentRequest, searchText: searchText.substring(0, 100) });
-    if (!isPaymentRequest) {
+    const isFundRequest = searchText.includes("fund request") || searchText.includes("requesting funds") || searchText.includes("need funds") || searchText.includes("funding request") || searchText.includes("contribute to") || searchText.includes("support my") || searchText.includes("donate to");
+    const isInvestmentRequest = searchText.includes("investment opportunity") || searchText.includes("invest in") || searchText.includes("equity offering") || searchText.includes("startup funding") || searchText.includes("project investment") || searchText.includes("contract address") || searchText.includes("project id") || searchText.includes("equity for") || searchText.includes("valuation") || searchText.includes("minimum investment");
+    console.log("[Mail-Fi] Request detection:", { isPaymentRequest, isFundRequest, isInvestmentRequest, searchText: searchText.substring(0, 100) });
+    if (!isPaymentRequest && !isFundRequest && !isInvestmentRequest) {
       return null;
     }
-    const amountMatch = searchText.match(/(\d+\.?\d*)\s*(usdc|eth|usdt|dai|pyusd)/i);
-    if (!amountMatch) {
-      console.log("[Mail-Fi] No amount/token found in payment request");
-      return null;
+    let amount = "";
+    let token = "USDC";
+    if (isInvestmentRequest) {
+      const targetRaiseMatch = searchText.match(/target raise[:\s]+(\d+\.?\d*)\s*(usdc|eth|usdt|dai|pyusd)/i);
+      if (targetRaiseMatch) {
+        amount = targetRaiseMatch[1];
+        token = targetRaiseMatch[2].toUpperCase();
+      } else {
+        amount = "Target Raise";
+        token = "USDC";
+      }
+    } else {
+      const amountMatch = searchText.match(/(\d+\.?\d*)\s*(usdc|eth|usdt|dai|pyusd)/i);
+      if (!amountMatch) {
+        console.log("[Mail-Fi] No amount/token found in payment request");
+        return null;
+      }
+      amount = amountMatch[1];
+      token = amountMatch[2].toUpperCase();
     }
-    const amount = amountMatch[1];
-    const token = amountMatch[2].toUpperCase();
     const chainText = searchText;
     let sourceChain = "ethereum-sepolia";
-    let destinationChain = "optimism-sepolia";
-    if (chainText.includes("from ethereum sepolia") || chainText.includes("from ethereum-sepolia")) {
-      sourceChain = "ethereum-sepolia";
-    } else if (chainText.includes("from arbitrum sepolia") || chainText.includes("from arbitrum-sepolia")) {
-      sourceChain = "arbitrum-sepolia";
-    } else if (chainText.includes("from optimism sepolia") || chainText.includes("from optimism-sepolia")) {
-      sourceChain = "optimism-sepolia";
-    } else if (chainText.includes("from base sepolia") || chainText.includes("from base-sepolia")) {
-      sourceChain = "base-sepolia";
-    } else if (chainText.includes("from polygon amoy") || chainText.includes("from polygon-amoy")) {
-      sourceChain = "polygon-amoy";
-    }
-    if (chainText.includes("to ethereum sepolia") || chainText.includes("to ethereum-sepolia")) {
-      destinationChain = "ethereum-sepolia";
-    } else if (chainText.includes("to arbitrum sepolia") || chainText.includes("to arbitrum-sepolia")) {
-      destinationChain = "arbitrum-sepolia";
-    } else if (chainText.includes("to optimism sepolia") || chainText.includes("to optimism-sepolia")) {
-      destinationChain = "optimism-sepolia";
-    } else if (chainText.includes("to base sepolia") || chainText.includes("to base-sepolia")) {
+    let destinationChain = "base-sepolia";
+    if (isInvestmentRequest) {
       destinationChain = "base-sepolia";
-    } else if (chainText.includes("to polygon amoy") || chainText.includes("to polygon-amoy")) {
-      destinationChain = "polygon-amoy";
+      if (chainText.includes("from ethereum sepolia") || chainText.includes("from ethereum-sepolia")) {
+        sourceChain = "ethereum-sepolia";
+      } else if (chainText.includes("from arbitrum sepolia") || chainText.includes("from arbitrum-sepolia")) {
+        sourceChain = "arbitrum-sepolia";
+      } else if (chainText.includes("from optimism sepolia") || chainText.includes("from optimism-sepolia")) {
+        sourceChain = "optimism-sepolia";
+      } else if (chainText.includes("from base sepolia") || chainText.includes("from base-sepolia")) {
+        sourceChain = "base-sepolia";
+      } else if (chainText.includes("from polygon amoy") || chainText.includes("from polygon-amoy")) {
+        sourceChain = "polygon-amoy";
+      }
+    } else {
+      if (chainText.includes("from ethereum sepolia") || chainText.includes("from ethereum-sepolia")) {
+        sourceChain = "ethereum-sepolia";
+      } else if (chainText.includes("from arbitrum sepolia") || chainText.includes("from arbitrum-sepolia")) {
+        sourceChain = "arbitrum-sepolia";
+      } else if (chainText.includes("from optimism sepolia") || chainText.includes("from optimism-sepolia")) {
+        sourceChain = "optimism-sepolia";
+      } else if (chainText.includes("from base sepolia") || chainText.includes("from base-sepolia")) {
+        sourceChain = "base-sepolia";
+      } else if (chainText.includes("from polygon amoy") || chainText.includes("from polygon-amoy")) {
+        sourceChain = "polygon-amoy";
+      }
+      if (chainText.includes("to ethereum sepolia") || chainText.includes("to ethereum-sepolia")) {
+        destinationChain = "ethereum-sepolia";
+      } else if (chainText.includes("to arbitrum sepolia") || chainText.includes("to arbitrum-sepolia")) {
+        destinationChain = "arbitrum-sepolia";
+      } else if (chainText.includes("to optimism sepolia") || chainText.includes("to optimism-sepolia")) {
+        destinationChain = "optimism-sepolia";
+      } else if (chainText.includes("to base sepolia") || chainText.includes("to base-sepolia")) {
+        destinationChain = "base-sepolia";
+      } else if (chainText.includes("to polygon amoy") || chainText.includes("to polygon-amoy")) {
+        destinationChain = "polygon-amoy";
+      }
     }
     const addressMatch = searchText.match(/0x[a-fA-F0-9]{40}/);
     const recipientAddress = addressMatch ? addressMatch[0] : "";
@@ -1853,13 +1883,65 @@ function extractPaymentRequest(emailElement) {
       return null;
     }
     const emailId = `payment-request-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    let requestType = "payment";
+    if (isFundRequest) requestType = "fund";
+    if (isInvestmentRequest) requestType = "investment";
+    let description = "";
+    let category = "";
+    if (isFundRequest) {
+      const descMatch = bodyText.match(/description[:\s]+([^\n\r]+)/i) || bodyText.match(/reason[:\s]+([^\n\r]+)/i) || bodyText.match(/purpose[:\s]+([^\n\r]+)/i);
+      description = descMatch ? descMatch[1].trim() : "Fund request";
+      const catMatch = bodyText.match(/category[:\s]+([^\n\r]+)/i) || bodyText.match(/type[:\s]+([^\n\r]+)/i);
+      category = catMatch ? catMatch[1].trim() : "General";
+    }
+    let projectId = "";
+    let contractAddress = "";
+    let projectName = "";
+    let equityOffered = "";
+    let valuation = "";
+    let minInvestment = "";
+    let maxInvestment = "";
+    let deadline = "";
+    if (isInvestmentRequest) {
+      const projectIdMatch = searchText.match(/project id[:\s]+(\d+)/i);
+      projectId = projectIdMatch ? projectIdMatch[1] : "";
+      const contractMatch = searchText.match(/contract address[:\s]+(0x[a-fA-F0-9]{40})/i);
+      contractAddress = contractMatch ? contractMatch[1] : "";
+      const nameMatch = bodyText.match(/project[:\s]+([^\n\r,]+)/i) || bodyText.match(/name[:\s]+([^\n\r,]+)/i) || subject.match(/investment opportunity[:\s]+([^-]+)/i);
+      projectName = nameMatch ? nameMatch[1].trim().split(/[:\s]/)[0] : "Investment Opportunity";
+      const equityMatch = searchText.match(/(\d+\.?\d*)\s*%?\s*equity/i);
+      equityOffered = equityMatch ? equityMatch[1] : "";
+      const valuationMatch = searchText.match(/valuation[:\s]+(\d+\.?\d*)\s*(usdc|eth|usdt|dai)/i);
+      valuation = valuationMatch ? `${valuationMatch[1]} ${valuationMatch[2].toUpperCase()}` : "";
+      const minMatch = searchText.match(/minimum investment[:\s]+(\d+\.?\d*)\s*(usdc|eth|usdt|dai)/i);
+      minInvestment = minMatch ? `${minMatch[1]} ${minMatch[2].toUpperCase()}` : "";
+      const maxMatch = searchText.match(/maximum investment[:\s]+(\d+\.?\d*)\s*(usdc|eth|usdt|dai)/i);
+      maxInvestment = maxMatch ? `${maxMatch[1]} ${maxMatch[2].toUpperCase()}` : "";
+      const deadlineMatch = searchText.match(/deadline[:\s]+(\d+)\s*(days?|hours?)/i);
+      deadline = deadlineMatch ? `${deadlineMatch[1]} ${deadlineMatch[2]}` : "";
+      description = projectName;
+      const catMatch = bodyText.match(/category[:\s]+([^\n\r]+)/i) || bodyText.match(/sector[:\s]+([^\n\r]+)/i) || bodyText.match(/industry[:\s]+([^\n\r]+)/i);
+      category = catMatch ? catMatch[1].trim() : "Investment";
+    }
     const paymentRequest = {
       amount,
       token,
       sourceChain,
       destinationChain,
       recipientAddress,
-      emailId
+      emailId,
+      type: requestType,
+      description,
+      category,
+      // Investment specific fields
+      projectId,
+      contractAddress,
+      projectName,
+      equityOffered,
+      valuation,
+      minInvestment,
+      maxInvestment,
+      deadline
     };
     console.log("[Mail-Fi] Extracted payment request:", paymentRequest);
     return paymentRequest;
@@ -1888,9 +1970,22 @@ function createPaymentRequestButton(paymentRequest) {
     transition: all 0.3s ease;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   `;
+  let buttonText = "";
+  let buttonIcon = "";
+  if (paymentRequest.type === "investment") {
+    const cleanProjectName = (paymentRequest.projectName || "Project").split(/[:\s]/)[0].substring(0, 20);
+    buttonText = `Invest in ${cleanProjectName}`;
+    buttonIcon = "\u{1F4C8}";
+  } else if (paymentRequest.type === "fund") {
+    buttonText = `Support ${paymentRequest.amount} ${paymentRequest.token}`;
+    buttonIcon = "\u{1F91D}";
+  } else {
+    buttonText = `Pay ${paymentRequest.amount} ${paymentRequest.token}`;
+    buttonIcon = "\u{1F4B3}";
+  }
   button.innerHTML = `
-    <span style="font-size: 16px;">\u{1F4B3}</span>
-    <span>Pay ${paymentRequest.amount} ${paymentRequest.token}</span>
+    <span style="font-size: 16px;">${buttonIcon}</span>
+    <span>${buttonText}</span>
   `;
   button.addEventListener("mouseenter", () => {
     button.style.transform = "scale(1.02)";
@@ -1910,18 +2005,44 @@ function createPaymentRequestButton(paymentRequest) {
 function handlePaymentRequest(paymentRequest) {
   try {
     console.log("[Mail-Fi] Handling payment request:", paymentRequest);
-    const params = new URLSearchParams({
-      recipient: paymentRequest.recipientAddress,
-      amount: paymentRequest.amount,
-      token: paymentRequest.token,
-      sourceChain: paymentRequest.sourceChain,
-      destinationChain: paymentRequest.destinationChain,
-      correlationId: paymentRequest.emailId,
-      type: "payment-request"
-    });
-    const nexusUrl = `http://localhost:3000/nexus-panel?${params.toString()}`;
+    let targetUrl = "";
+    if (paymentRequest.type === "investment") {
+      const params = new URLSearchParams({
+        projectId: paymentRequest.projectId || "",
+        contractAddress: paymentRequest.contractAddress || "",
+        projectName: paymentRequest.projectName || "",
+        equityOffered: paymentRequest.equityOffered || "",
+        valuation: paymentRequest.valuation || "",
+        minInvestment: paymentRequest.minInvestment || "",
+        maxInvestment: paymentRequest.maxInvestment || "",
+        deadline: paymentRequest.deadline || "",
+        category: paymentRequest.category || "",
+        description: paymentRequest.description || "",
+        correlationId: paymentRequest.emailId,
+        type: "investment-opportunity"
+      });
+      targetUrl = `http://localhost:3000/investment?${params.toString()}`;
+    } else {
+      const params = new URLSearchParams({
+        recipient: paymentRequest.recipientAddress,
+        amount: paymentRequest.amount,
+        token: paymentRequest.token,
+        sourceChain: paymentRequest.sourceChain,
+        destinationChain: paymentRequest.destinationChain,
+        correlationId: paymentRequest.emailId,
+        type: paymentRequest.type === "fund" ? "fund-request" : "payment-request",
+        requestType: paymentRequest.type
+      });
+      if (paymentRequest.type === "fund" && paymentRequest.description) {
+        params.set("description", paymentRequest.description);
+      }
+      if (paymentRequest.type === "fund" && paymentRequest.category) {
+        params.set("category", paymentRequest.category);
+      }
+      targetUrl = `http://localhost:3000/nexus-panel?${params.toString()}`;
+    }
     const popup = window.open(
-      nexusUrl,
+      targetUrl,
       "mailfi-payment",
       "width=600,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no"
     );

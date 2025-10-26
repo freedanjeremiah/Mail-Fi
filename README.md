@@ -236,6 +236,82 @@ NEXT_PUBLIC_WALLET_API_URL=http://localhost:3000/api/wallet-lookup
 - **Hydration Errors:** Suppressed with `suppressHydrationWarning={true}`
 - **PYUSD Processing:** Currently placeholder (custom logic to be implemented)
 
+## 🚀 Investment Opportunities
+
+Mail-Fi now supports **investment opportunities** through email! Startups can send investment emails that recipients can fund directly from their Gmail inbox.
+
+### 📧 Investment Email Template
+
+**Subject:** Investment Opportunity: TechStart AI - 10% equity for 50,000 USDC
+
+**Body:**
+```
+🚀 Investment Opportunity: TechStart AI
+
+Project: TechStart AI
+Description: Revolutionary AI platform for healthcare diagnostics using machine learning to detect diseases early and improve patient outcomes.
+
+Category: Healthcare Technology
+Target Raise: 50,000 USDC
+Equity Offered: 10%
+Valuation: 500,000 USDC
+Minimum Investment: 1,000 USDC
+Maximum Investment: 10,000 USDC
+Deadline: 30 days
+
+Contract Address: 0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c
+Project ID: 1
+
+Invest now to be part of the future of healthcare AI!
+
+My wallet address: 0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25
+```
+
+### 🔍 Investment Detection Keywords
+
+The extension automatically detects emails containing:
+- `investment opportunity`
+- `invest in`
+- `equity offering`
+- `startup funding`
+- `project investment`
+- `contract address`
+- `project id`
+- `equity for`
+- `valuation`
+- `minimum investment`
+
+### 💰 Investment Flow
+
+1. **Email Detection** - Extension scans received emails for investment keywords
+2. **Data Extraction** - Extracts project details, contract address, and project ID
+3. **Button Injection** - Shows "Invest in [Project Name]" button in email
+4. **Investment Interface** - Opens investment interface with project details
+5. **Smart Contract Interaction** - Allows investors to invest USDC through the contract
+6. **Transaction Confirmation** - Shows success message and updates email button
+
+### 🔒 Smart Contract Integration
+
+**Deployed Contract:**
+- **Address:** `0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c`
+- **Network:** Base Sepolia (Chain ID: 84532)
+- **USDC Token:** `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
+
+**Security Features:**
+- Funds held in escrow until project approval
+- Admin approval required before funds are released
+- Investors can refund if project is rejected
+- Smart contract ensures secure fund management
+- All transactions are recorded on-chain
+
+### 🧪 Testing Investment Flow
+
+1. **Send Test Email** using the template above
+2. **Open email in Gmail** - Look for "Invest in [Project Name]" button
+3. **Click investment button** - Opens investment interface
+4. **Connect wallet** and test investment process
+5. **Confirm transaction** - Verify success message
+
 **🎯 Next Steps:**
 - Implement custom PYUSD payment processing
 - Add more chain support as needed
