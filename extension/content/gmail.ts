@@ -1,3 +1,7 @@
+// Import email-to-wallet mapping
+import { lookupWalletAddress, extractEmailAddresses } from './email-wallet-mapping';
+import { initializePaymentRequests } from './gmail-payment-requests';
+
 // Inject Nexus SDK bundle into page (like nexus-hyperliquid-poc)
 function injectNexusBundle() {
   try {
@@ -46,6 +50,17 @@ function insertPaymentSnippet(composeWindow: Element, payload: any, options?: Tr
     const explorerUrl = payload?.explorerUrl || payload?.intent?.explorerUrl || null;
     const recipient = options?.recipient || '';
     
+    // Try to get the original email address from the To field
+    let recipientEmail = '';
+    try {
+      const emails = extractEmailAddresses(composeWindow);
+      if (emails.length > 0) {
+        recipientEmail = emails[0];
+      }
+    } catch (err) {
+      console.warn('[Mail-Fi] Failed to extract email for snippet:', err);
+    }
+    
     // Get destination chain from URL params or default to Optimism
     const urlParams = new URLSearchParams(window.location.search);
     const destinationChain = urlParams.get('destinationChain') || 'optimism';
@@ -73,7 +88,7 @@ function insertPaymentSnippet(composeWindow: Element, payload: any, options?: Tr
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
           <div><strong style="color: #374151;">Amount:</strong> <span style="color: #059669;">${amount} ${token}</span></div>
           <div><strong style="color: #374151;">Destination:</strong> <span style="color: #7c3aed;">${destinationChain === 'arbitrum' ? 'Arbitrum Sepolia' : 'Optimism Sepolia'}</span></div>
-          <div><strong style="color: #374151;">Recipient:</strong> <span style="font-family: monospace; color: #6b7280;">${recipient.slice(0, 6)}...${recipient.slice(-4)}</span></div>
+          <div><strong style="color: #374151;">Recipient:</strong> <span style="color: #6b7280;">${recipientEmail || recipient.slice(0, 6) + '...' + recipient.slice(-4)}</span></div>
           <div><strong style="color: #374151;">Status:</strong> <span style="color: #059669; font-weight: 600;">✅ Completed</span></div>
         </div>
       </div>
@@ -156,38 +171,113 @@ function injectComposeButton(composeWindow: Element) {
     </div>
   `;
 
-  btn.addEventListener('click', (e) => {
+  btn.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Extract wallet address from Gmail's "To" field (where email addresses go)
-    let recipientAddress = '';
+    // Check if disconnect button was clicked
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('mailfi-disconnect-btn') || target.closest('.mailfi-disconnect-btn')) {
+      console.log('[Mail-Fi] Disconnecting wallet...');
+      
+      // Reset button to original state
+      btn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+          </svg>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+            <span style="font-size: 11px; opacity: 0.9;">Pay with Avail</span>
+            <span style="font-size: 14px; font-weight: 700;">USDC</span>
+          </div>
+        </div>
+      `;
+      
+      btn.disabled = false;
+      btn.title = 'Pay with Avail - Opens payment window';
+      return;
+    }
+
+    // Extract email addresses from Gmail's "To" field
+    let recipientAddress: string | null = null;
+    let recipientEmail = '';
     let amount = '0.001'; // Default amount
 
     try {
-      // Try multiple selectors for Gmail's "To" field
-    const toField = composeWindow.querySelector('input[name="to"]') as HTMLInputElement;
-      const toSpans = composeWindow.querySelectorAll('span[email]');
-      const toInputs = composeWindow.querySelectorAll('input[type="text"]');
+      // Extract email addresses from the compose window
+      const emails = extractEmailAddresses(composeWindow);
       
-      if (toField?.value) {
-        recipientAddress = toField.value.trim();
-      } else if (toSpans.length > 0) {
-        recipientAddress = toSpans[0].getAttribute('email') || '';
-      } else if (toInputs.length > 0) {
-        // Check all text inputs for 0x addresses
-        for (const input of toInputs) {
-          const value = (input as HTMLInputElement).value?.trim();
-          if (value && value.startsWith('0x') && value.length === 42) {
-            recipientAddress = value;
-            break;
-          }
+      if (emails.length > 0) {
+        recipientEmail = emails[0]; // Use first email
+        console.log('[Mail-Fi] Extracted email from To field:', recipientEmail);
+        
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #6b7280; border-radius: 6px; color: white; font-weight: 500; font-size: 13px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white" class="animate-spin">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+            </svg>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+              <span style="font-size: 11px; opacity: 0.9;">Looking up wallet...</span>
+              <span style="font-size: 14px; font-weight: 700;">${recipientEmail}</span>
+            </div>
+          </div>
+        `;
+        
+        // Lookup wallet address from email
+        recipientAddress = await lookupWalletAddress(recipientEmail);
+        
+        if (!recipientAddress) {
+          console.error('[Mail-Fi] Failed to lookup wallet address for:', recipientEmail);
+          btn.disabled = false;
+          btn.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #ef4444; border-radius: 6px; color: white; font-weight: 500; font-size: 13px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+              </svg>
+              <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+                <span style="font-size: 11px; opacity: 0.9;">Wallet not found</span>
+                <span style="font-size: 14px; font-weight: 700;">Try again</span>
+              </div>
+            </div>
+          `;
+          return;
         }
+        
+        console.log('[Mail-Fi] Found wallet address:', recipientAddress, 'for email:', recipientEmail);
+        
+        // Update button to show success with disconnect option
+        btn.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+            </svg>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; flex: 1;">
+              <span style="font-size: 11px; opacity: 0.9;">Wallet found ✓</span>
+              <span style="font-size: 14px; font-weight: 700;">${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}</span>
+            </div>
+            <button 
+              class="mailfi-disconnect-btn"
+              style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; color: white; padding: 2px 6px; font-size: 10px; cursor: pointer; margin-left: 4px;"
+              title="Disconnect wallet"
+            >
+              ✕
+            </button>
+          </div>
+        `;
+        
+        // Re-enable button for payment
+        btn.disabled = false;
+      } else {
+        console.warn('[Mail-Fi] No email addresses found in To field');
+        btn.disabled = false;
+        return;
       }
-      
-      console.log('[Mail-Fi] Extracted from To field:', recipientAddress);
     } catch (err) {
       console.warn('[Mail-Fi] Failed to extract recipient:', err);
+      btn.disabled = false;
+      return;
     }
 
     // Extract amount, token, source chain, and destination chain from subject line
@@ -467,4 +557,7 @@ function observeComposeWindows() {
   });
 
   chrome.runtime.sendMessage({ type: 'PING' }, () => {});
+  
+  // Initialize payment request detection
+  initializePaymentRequests();
 })();

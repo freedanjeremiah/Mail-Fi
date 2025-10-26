@@ -1741,6 +1741,488 @@ function ieee754write(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 }
 
+// extension/content/email-wallet-mapping.ts
+var EMAIL_WALLET_MAPPING = {
+  // Default mapping for testing
+  "user@example.com": "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25",
+  "test@gmail.com": "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25",
+  "demo@mail.com": "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25",
+  // Add more mappings as needed
+  "alice@example.com": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+  "bob@example.com": "0x8ba1f109551bD432803012645Hac136c",
+  "charlie@example.com": "0x1234567890123456789012345678901234567890"
+};
+async function lookupWalletAddress(email) {
+  console.log(`[Mail-Fi] Looking up wallet address for email: ${email}`);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const cleanEmail = email.toLowerCase().trim();
+  if (EMAIL_WALLET_MAPPING[cleanEmail]) {
+    const walletAddress = EMAIL_WALLET_MAPPING[cleanEmail];
+    console.log(`[Mail-Fi] Found wallet address: ${walletAddress}`);
+    return walletAddress;
+  }
+  console.log(`[Mail-Fi] Using default wallet address for: ${cleanEmail}`);
+  return "0x9921a14310BCe4aBd3B254Bde5ca6DdFfE168F25";
+}
+function extractEmailAddresses(composeWindow) {
+  const emails = [];
+  try {
+    const toField = composeWindow.querySelector('input[name="to"]');
+    const toSpans = composeWindow.querySelectorAll("span[email]");
+    const toInputs = composeWindow.querySelectorAll('input[type="text"]');
+    if (toField?.value) {
+      const value = toField.value.trim();
+      const emailList = value.split(",").map((email) => email.trim()).filter((email) => email.includes("@"));
+      emails.push(...emailList);
+    }
+    toSpans.forEach((span) => {
+      const email = span.getAttribute("email");
+      if (email && email.includes("@")) {
+        emails.push(email);
+      }
+    });
+    toInputs.forEach((input) => {
+      const value = input.value?.trim();
+      if (value && value.includes("@")) {
+        const emailList = value.split(",").map((email) => email.trim()).filter((email) => email.includes("@"));
+        emails.push(...emailList);
+      }
+    });
+    console.log("[Mail-Fi] Extracted emails:", emails);
+  } catch (err) {
+    console.warn("[Mail-Fi] Failed to extract emails:", err);
+  }
+  return emails;
+}
+
+// extension/content/gmail-payment-requests.ts
+function extractPaymentRequest(emailElement) {
+  try {
+    const subjectElement = emailElement.querySelector("[data-legacy-thread-id] h2, .thread-subject, [data-thread-perm-id] h2, .thread-subject, h2[data-thread-perm-id]");
+    const subject = subjectElement?.textContent?.trim() || "";
+    const bodyElement = emailElement.querySelector('.email-body, .message-body, [role="main"] .adn, .ii, .adn, .email-body, .message-body, [data-message-id] .adn, .thread .adn');
+    const bodyText = bodyElement?.textContent?.trim() || "";
+    const fullText = emailElement.textContent?.trim() || "";
+    console.log("[Mail-Fi] Analyzing email for payment request:", {
+      subject,
+      bodyText: bodyText.substring(0, 200),
+      fullText: fullText.substring(0, 200)
+    });
+    const searchText = (subject + " " + bodyText + " " + fullText).toLowerCase();
+    const isPaymentRequest = searchText.includes("payment request") || searchText.includes("please pay") || searchText.includes("invoice") || searchText.includes("my wallet address") || searchText.includes("requesting a payment") || searchText.includes("pay with avail");
+    const isFundRequest = searchText.includes("fund request") || searchText.includes("requesting funds") || searchText.includes("need funds") || searchText.includes("funding request") || searchText.includes("contribute to") || searchText.includes("support my") || searchText.includes("donate to");
+    const isInvestmentRequest = searchText.includes("investment opportunity") || searchText.includes("invest in") || searchText.includes("equity offering") || searchText.includes("startup funding") || searchText.includes("project investment") || searchText.includes("contract address") || searchText.includes("project id") || searchText.includes("equity for") || searchText.includes("valuation") || searchText.includes("minimum investment");
+    console.log("[Mail-Fi] Request detection:", { isPaymentRequest, isFundRequest, isInvestmentRequest, searchText: searchText.substring(0, 100) });
+    if (!isPaymentRequest && !isFundRequest && !isInvestmentRequest) {
+      return null;
+    }
+    let amount = "";
+    let token = "USDC";
+    if (isInvestmentRequest) {
+      const targetRaiseMatch = searchText.match(/target raise[:\s]+(\d+\.?\d*)\s*(usdc|eth|usdt|dai|pyusd)/i);
+      if (targetRaiseMatch) {
+        amount = targetRaiseMatch[1];
+        token = targetRaiseMatch[2].toUpperCase();
+      } else {
+        amount = "Target Raise";
+        token = "USDC";
+      }
+    } else {
+      const amountMatch = searchText.match(/(\d+\.?\d*)\s*(usdc|eth|usdt|dai|pyusd)/i);
+      if (!amountMatch) {
+        console.log("[Mail-Fi] No amount/token found in payment request");
+        return null;
+      }
+      amount = amountMatch[1];
+      token = amountMatch[2].toUpperCase();
+    }
+    const chainText = searchText;
+    let sourceChain = "ethereum-sepolia";
+    let destinationChain = "base-sepolia";
+    if (isInvestmentRequest) {
+      destinationChain = "base-sepolia";
+      if (chainText.includes("from ethereum sepolia") || chainText.includes("from ethereum-sepolia")) {
+        sourceChain = "ethereum-sepolia";
+      } else if (chainText.includes("from arbitrum sepolia") || chainText.includes("from arbitrum-sepolia")) {
+        sourceChain = "arbitrum-sepolia";
+      } else if (chainText.includes("from optimism sepolia") || chainText.includes("from optimism-sepolia")) {
+        sourceChain = "optimism-sepolia";
+      } else if (chainText.includes("from base sepolia") || chainText.includes("from base-sepolia")) {
+        sourceChain = "base-sepolia";
+      } else if (chainText.includes("from polygon amoy") || chainText.includes("from polygon-amoy")) {
+        sourceChain = "polygon-amoy";
+      }
+    } else {
+      if (chainText.includes("from ethereum sepolia") || chainText.includes("from ethereum-sepolia")) {
+        sourceChain = "ethereum-sepolia";
+      } else if (chainText.includes("from arbitrum sepolia") || chainText.includes("from arbitrum-sepolia")) {
+        sourceChain = "arbitrum-sepolia";
+      } else if (chainText.includes("from optimism sepolia") || chainText.includes("from optimism-sepolia")) {
+        sourceChain = "optimism-sepolia";
+      } else if (chainText.includes("from base sepolia") || chainText.includes("from base-sepolia")) {
+        sourceChain = "base-sepolia";
+      } else if (chainText.includes("from polygon amoy") || chainText.includes("from polygon-amoy")) {
+        sourceChain = "polygon-amoy";
+      }
+      if (chainText.includes("to ethereum sepolia") || chainText.includes("to ethereum-sepolia")) {
+        destinationChain = "ethereum-sepolia";
+      } else if (chainText.includes("to arbitrum sepolia") || chainText.includes("to arbitrum-sepolia")) {
+        destinationChain = "arbitrum-sepolia";
+      } else if (chainText.includes("to optimism sepolia") || chainText.includes("to optimism-sepolia")) {
+        destinationChain = "optimism-sepolia";
+      } else if (chainText.includes("to base sepolia") || chainText.includes("to base-sepolia")) {
+        destinationChain = "base-sepolia";
+      } else if (chainText.includes("to polygon amoy") || chainText.includes("to polygon-amoy")) {
+        destinationChain = "polygon-amoy";
+      }
+    }
+    const addressMatch = searchText.match(/0x[a-fA-F0-9]{40}/);
+    const recipientAddress = addressMatch ? addressMatch[0] : "";
+    if (!recipientAddress) {
+      console.log("[Mail-Fi] No wallet address found in payment request");
+      return null;
+    }
+    const emailId = `payment-request-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    let requestType = "payment";
+    if (isFundRequest) requestType = "fund";
+    if (isInvestmentRequest) requestType = "investment";
+    let description = "";
+    let category = "";
+    if (isFundRequest) {
+      const descMatch = bodyText.match(/description[:\s]+([^\n\r]+)/i) || bodyText.match(/reason[:\s]+([^\n\r]+)/i) || bodyText.match(/purpose[:\s]+([^\n\r]+)/i);
+      description = descMatch ? descMatch[1].trim() : "Fund request";
+      const catMatch = bodyText.match(/category[:\s]+([^\n\r]+)/i) || bodyText.match(/type[:\s]+([^\n\r]+)/i);
+      category = catMatch ? catMatch[1].trim() : "General";
+    }
+    let projectId = "";
+    let contractAddress = "";
+    let projectName = "";
+    let equityOffered = "";
+    let valuation = "";
+    let minInvestment = "";
+    let maxInvestment = "";
+    let deadline = "";
+    if (isInvestmentRequest) {
+      const projectIdMatch = searchText.match(/project id[:\s]+(\d+)/i);
+      projectId = projectIdMatch ? projectIdMatch[1] : "";
+      const contractMatch = searchText.match(/contract address[:\s]+(0x[a-fA-F0-9]{40})/i);
+      contractAddress = contractMatch ? contractMatch[1] : "";
+      const nameMatch = bodyText.match(/project[:\s]+([^\n\r,]+)/i) || bodyText.match(/name[:\s]+([^\n\r,]+)/i) || subject.match(/investment opportunity[:\s]+([^-]+)/i);
+      projectName = nameMatch ? nameMatch[1].trim().split(/[:\s]/)[0] : "Investment Opportunity";
+      const equityMatch = searchText.match(/(\d+\.?\d*)\s*%?\s*equity/i);
+      equityOffered = equityMatch ? equityMatch[1] : "";
+      const valuationMatch = searchText.match(/valuation[:\s]+(\d+\.?\d*)\s*(usdc|eth|usdt|dai)/i);
+      valuation = valuationMatch ? `${valuationMatch[1]} ${valuationMatch[2].toUpperCase()}` : "";
+      const minMatch = searchText.match(/minimum investment[:\s]+(\d+\.?\d*)\s*(usdc|eth|usdt|dai)/i);
+      minInvestment = minMatch ? `${minMatch[1]} ${minMatch[2].toUpperCase()}` : "";
+      const maxMatch = searchText.match(/maximum investment[:\s]+(\d+\.?\d*)\s*(usdc|eth|usdt|dai)/i);
+      maxInvestment = maxMatch ? `${maxMatch[1]} ${maxMatch[2].toUpperCase()}` : "";
+      const deadlineMatch = searchText.match(/deadline[:\s]+(\d+)\s*(days?|hours?)/i);
+      deadline = deadlineMatch ? `${deadlineMatch[1]} ${deadlineMatch[2]}` : "";
+      description = projectName;
+      const catMatch = bodyText.match(/category[:\s]+([^\n\r]+)/i) || bodyText.match(/sector[:\s]+([^\n\r]+)/i) || bodyText.match(/industry[:\s]+([^\n\r]+)/i);
+      category = catMatch ? catMatch[1].trim() : "Investment";
+    }
+    const paymentRequest = {
+      amount,
+      token,
+      sourceChain,
+      destinationChain,
+      recipientAddress,
+      emailId,
+      type: requestType,
+      description,
+      category,
+      // Investment specific fields
+      projectId,
+      contractAddress,
+      projectName,
+      equityOffered,
+      valuation,
+      minInvestment,
+      maxInvestment,
+      deadline
+    };
+    console.log("[Mail-Fi] Extracted payment request:", paymentRequest);
+    return paymentRequest;
+  } catch (error) {
+    console.error("[Mail-Fi] Error extracting payment request:", error);
+    return null;
+  }
+}
+function createPaymentRequestButton(paymentRequest) {
+  const button = document.createElement("div");
+  button.className = "mailfi-payment-request-btn";
+  button.style.cssText = `
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 12px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  `;
+  let buttonText = "";
+  let buttonIcon = "";
+  if (paymentRequest.type === "investment") {
+    const cleanProjectName = (paymentRequest.projectName || "Project").split(/[:\s]/)[0].substring(0, 20);
+    buttonText = `Invest in ${cleanProjectName}`;
+    buttonIcon = "\u{1F4C8}";
+  } else if (paymentRequest.type === "fund") {
+    buttonText = `Support ${paymentRequest.amount} ${paymentRequest.token}`;
+    buttonIcon = "\u{1F91D}";
+  } else {
+    buttonText = `Pay ${paymentRequest.amount} ${paymentRequest.token}`;
+    buttonIcon = "\u{1F4B3}";
+  }
+  button.innerHTML = `
+    <span style="font-size: 16px;">${buttonIcon}</span>
+    <span>${buttonText}</span>
+  `;
+  button.addEventListener("mouseenter", () => {
+    button.style.transform = "scale(1.02)";
+    button.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.4)";
+  });
+  button.addEventListener("mouseleave", () => {
+    button.style.transform = "scale(1)";
+    button.style.boxShadow = "0 2px 8px rgba(59, 130, 246, 0.3)";
+  });
+  button.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handlePaymentRequest(paymentRequest);
+  });
+  return button;
+}
+function handlePaymentRequest(paymentRequest) {
+  try {
+    console.log("[Mail-Fi] Handling payment request:", paymentRequest);
+    let targetUrl = "";
+    if (paymentRequest.type === "investment") {
+      const params = new URLSearchParams({
+        projectId: paymentRequest.projectId || "",
+        contractAddress: paymentRequest.contractAddress || "",
+        projectName: paymentRequest.projectName || "",
+        equityOffered: paymentRequest.equityOffered || "",
+        valuation: paymentRequest.valuation || "",
+        minInvestment: paymentRequest.minInvestment || "",
+        maxInvestment: paymentRequest.maxInvestment || "",
+        deadline: paymentRequest.deadline || "",
+        category: paymentRequest.category || "",
+        description: paymentRequest.description || "",
+        correlationId: paymentRequest.emailId,
+        type: "investment-opportunity"
+      });
+      targetUrl = `http://localhost:3000/investment?${params.toString()}`;
+    } else {
+      const params = new URLSearchParams({
+        recipient: paymentRequest.recipientAddress,
+        amount: paymentRequest.amount,
+        token: paymentRequest.token,
+        sourceChain: paymentRequest.sourceChain,
+        destinationChain: paymentRequest.destinationChain,
+        correlationId: paymentRequest.emailId,
+        type: paymentRequest.type === "fund" ? "fund-request" : "payment-request",
+        requestType: paymentRequest.type
+      });
+      if (paymentRequest.type === "fund" && paymentRequest.description) {
+        params.set("description", paymentRequest.description);
+      }
+      if (paymentRequest.type === "fund" && paymentRequest.category) {
+        params.set("category", paymentRequest.category);
+      }
+      targetUrl = `http://localhost:3000/nexus-panel?${params.toString()}`;
+    }
+    const popup = window.open(
+      targetUrl,
+      "mailfi-payment",
+      "width=600,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no"
+    );
+    if (!popup) {
+      alert("Popup blocked! Please allow popups for this site to complete the payment.");
+      return;
+    }
+    const handlePaymentSuccess = (event) => {
+      if (event.data?.type === "MAILFI_PAYMENT_SUCCESS") {
+        console.log("[Mail-Fi] Payment completed:", event.data.data);
+        const button = document.querySelector(`[data-email-id="${paymentRequest.emailId}"]`);
+        if (button) {
+          button.innerHTML = `
+            <span style="font-size: 16px;">\u2705</span>
+            <span>Payment Completed</span>
+          `;
+          button.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+          button.style.cursor = "default";
+          button.onclick = null;
+        }
+        popup?.close();
+        window.removeEventListener("message", handlePaymentSuccess);
+      }
+    };
+    window.addEventListener("message", handlePaymentSuccess);
+    const checkClosed = setInterval(() => {
+      if (popup?.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener("message", handlePaymentSuccess);
+      }
+    }, 1e3);
+  } catch (error) {
+    console.error("[Mail-Fi] Error handling payment request:", error);
+    alert("Error opening payment interface. Please try again.");
+  }
+}
+function injectPaymentRequestButton(emailElement, paymentRequest) {
+  try {
+    const existingButton = emailElement.querySelector(".mailfi-payment-request-btn");
+    if (existingButton) {
+      return;
+    }
+    const bodyElement = emailElement.querySelector('.email-body, .message-body, [role="main"] .adn, .ii');
+    const targetElement = bodyElement || emailElement;
+    const container = document.createElement("div");
+    container.style.cssText = `
+      margin: 16px 0;
+      padding: 16px;
+      background: #f8f9fa;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      text-align: center;
+    `;
+    const button = createPaymentRequestButton(paymentRequest);
+    button.setAttribute("data-email-id", paymentRequest.emailId);
+    const header = document.createElement("div");
+    header.style.cssText = `
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    `;
+    header.textContent = "Payment Request";
+    const details = document.createElement("div");
+    details.style.cssText = `
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    `;
+    details.innerHTML = `
+      <div>Amount: <strong>${paymentRequest.amount} ${paymentRequest.token}</strong></div>
+      <div>From: <strong>${paymentRequest.sourceChain}</strong> \u2192 To: <strong>${paymentRequest.destinationChain}</strong></div>
+      <div>Recipient: <strong>${paymentRequest.recipientAddress.slice(0, 6)}...${paymentRequest.recipientAddress.slice(-4)}</strong></div>
+    `;
+    container.appendChild(header);
+    container.appendChild(button);
+    container.appendChild(details);
+    if (targetElement && targetElement.parentNode) {
+      targetElement.parentNode.insertBefore(container, targetElement.nextSibling);
+    } else {
+      emailElement.appendChild(container);
+    }
+    console.log("[Mail-Fi] Injected payment request button for email:", paymentRequest.emailId);
+  } catch (error) {
+    console.error("[Mail-Fi] Error injecting payment request button:", error);
+  }
+}
+function processEmailThread(threadElement) {
+  try {
+    console.log("[Mail-Fi] Processing email thread:", threadElement);
+    const emailMessages = threadElement.querySelectorAll("[data-legacy-thread-id], .thread-message, .email-message, .thread .adn, [data-message-id], .email-content");
+    console.log("[Mail-Fi] Found email messages:", emailMessages.length);
+    emailMessages.forEach((emailElement, index) => {
+      console.log("[Mail-Fi] Processing email message:", index, emailElement);
+      if (emailElement.querySelector(".mailfi-payment-request-btn")) {
+        console.log("[Mail-Fi] Button already exists, skipping");
+        return;
+      }
+      const paymentRequest = extractPaymentRequest(emailElement);
+      if (paymentRequest) {
+        console.log("[Mail-Fi] Found payment request in email:", paymentRequest);
+        injectPaymentRequestButton(emailElement, paymentRequest);
+      } else {
+        console.log("[Mail-Fi] No payment request found in email");
+      }
+    });
+  } catch (error) {
+    console.error("[Mail-Fi] Error processing email thread:", error);
+  }
+}
+function initializePaymentRequests() {
+  try {
+    console.log("[Mail-Fi] Initializing payment request detection...");
+    const threadElements = document.querySelectorAll("[data-thread-perm-id], .thread, .email-thread, [data-legacy-thread-id], .thread-content, .email-thread-content");
+    console.log("[Mail-Fi] Found thread elements:", threadElements.length);
+    threadElements.forEach(processEmailThread);
+    const emailElements = document.querySelectorAll("[data-message-id], .email-message, .thread .adn, [data-legacy-thread-id]");
+    console.log("[Mail-Fi] Found individual email elements:", emailElements.length);
+    emailElements.forEach((emailElement) => {
+      const paymentRequest = extractPaymentRequest(emailElement);
+      if (paymentRequest) {
+        console.log("[Mail-Fi] Found payment request in individual email:", paymentRequest);
+        injectPaymentRequestButton(emailElement, paymentRequest);
+      }
+    });
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node;
+            if (element.matches("[data-thread-perm-id], .thread, .email-thread, [data-legacy-thread-id]") || element.querySelector("[data-thread-perm-id], .thread, .email-thread, [data-legacy-thread-id]")) {
+              console.log("[Mail-Fi] New thread detected:", element);
+              processEmailThread(element);
+            }
+            if (element.matches("[data-message-id], .email-message, .thread .adn") || element.querySelector("[data-message-id], .email-message, .thread .adn")) {
+              console.log("[Mail-Fi] New email message detected:", element);
+              const paymentRequest = extractPaymentRequest(element);
+              if (paymentRequest) {
+                console.log("[Mail-Fi] Found payment request in new email:", paymentRequest);
+                injectPaymentRequestButton(element, paymentRequest);
+              }
+            }
+          }
+        });
+      });
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    console.log("[Mail-Fi] Payment request detection initialized");
+  } catch (error) {
+    console.error("[Mail-Fi] Error initializing payment requests:", error);
+  }
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializePaymentRequests);
+} else {
+  initializePaymentRequests();
+}
+function manualTriggerPaymentDetection() {
+  console.log("[Mail-Fi] Manual trigger - scanning all elements for payment requests...");
+  const allElements = document.querySelectorAll("*");
+  console.log("[Mail-Fi] Scanning", allElements.length, "elements");
+  allElements.forEach((element, index) => {
+    if (element.textContent && element.textContent.includes("0.001 USDC")) {
+      console.log("[Mail-Fi] Found element with 0.001 USDC:", element, element.textContent.substring(0, 200));
+      const paymentRequest = extractPaymentRequest(element);
+      if (paymentRequest) {
+        console.log("[Mail-Fi] Successfully extracted payment request:", paymentRequest);
+        injectPaymentRequestButton(element, paymentRequest);
+      }
+    }
+  });
+}
+window.mailfiTriggerPaymentDetection = manualTriggerPaymentDetection;
+
 // extension/content/gmail.ts
 function injectNexusBundle() {
   try {
@@ -1770,6 +2252,15 @@ function insertPaymentSnippet(composeWindow, payload, options) {
     const intentId = payload?.intentId || payload?.intent?.id || null;
     const explorerUrl = payload?.explorerUrl || payload?.intent?.explorerUrl || null;
     const recipient = options?.recipient || "";
+    let recipientEmail = "";
+    try {
+      const emails = extractEmailAddresses(composeWindow);
+      if (emails.length > 0) {
+        recipientEmail = emails[0];
+      }
+    } catch (err) {
+      console.warn("[Mail-Fi] Failed to extract email for snippet:", err);
+    }
     const urlParams = new URLSearchParams(window.location.search);
     const destinationChain = urlParams.get("destinationChain") || "optimism";
     const snippet = document.createElement("div");
@@ -1793,7 +2284,7 @@ function insertPaymentSnippet(composeWindow, payload, options) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
           <div><strong style="color: #374151;">Amount:</strong> <span style="color: #059669;">${amount} ${token}</span></div>
           <div><strong style="color: #374151;">Destination:</strong> <span style="color: #7c3aed;">${destinationChain === "arbitrum" ? "Arbitrum Sepolia" : "Optimism Sepolia"}</span></div>
-          <div><strong style="color: #374151;">Recipient:</strong> <span style="font-family: monospace; color: #6b7280;">${recipient.slice(0, 6)}...${recipient.slice(-4)}</span></div>
+          <div><strong style="color: #374151;">Recipient:</strong> <span style="color: #6b7280;">${recipientEmail || recipient.slice(0, 6) + "..." + recipient.slice(-4)}</span></div>
           <div><strong style="color: #374151;">Status:</strong> <span style="color: #059669; font-weight: 600;">\u2705 Completed</span></div>
         </div>
       </div>
@@ -1867,31 +2358,93 @@ function injectComposeButton(composeWindow) {
       </div>
     </div>
   `;
-  btn.addEventListener("click", (e) => {
+  btn.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    let recipientAddress = "";
+    const target = e.target;
+    if (target.classList.contains("mailfi-disconnect-btn") || target.closest(".mailfi-disconnect-btn")) {
+      console.log("[Mail-Fi] Disconnecting wallet...");
+      btn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+          </svg>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+            <span style="font-size: 11px; opacity: 0.9;">Pay with Avail</span>
+            <span style="font-size: 14px; font-weight: 700;">USDC</span>
+          </div>
+        </div>
+      `;
+      btn.disabled = false;
+      btn.title = "Pay with Avail - Opens payment window";
+      return;
+    }
+    let recipientAddress = null;
+    let recipientEmail = "";
     let amount = "0.001";
     try {
-      const toField = composeWindow.querySelector('input[name="to"]');
-      const toSpans = composeWindow.querySelectorAll("span[email]");
-      const toInputs = composeWindow.querySelectorAll('input[type="text"]');
-      if (toField?.value) {
-        recipientAddress = toField.value.trim();
-      } else if (toSpans.length > 0) {
-        recipientAddress = toSpans[0].getAttribute("email") || "";
-      } else if (toInputs.length > 0) {
-        for (const input of toInputs) {
-          const value = input.value?.trim();
-          if (value && value.startsWith("0x") && value.length === 42) {
-            recipientAddress = value;
-            break;
-          }
+      const emails = extractEmailAddresses(composeWindow);
+      if (emails.length > 0) {
+        recipientEmail = emails[0];
+        console.log("[Mail-Fi] Extracted email from To field:", recipientEmail);
+        btn.disabled = true;
+        btn.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #6b7280; border-radius: 6px; color: white; font-weight: 500; font-size: 13px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white" class="animate-spin">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+            </svg>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+              <span style="font-size: 11px; opacity: 0.9;">Looking up wallet...</span>
+              <span style="font-size: 14px; font-weight: 700;">${recipientEmail}</span>
+            </div>
+          </div>
+        `;
+        recipientAddress = await lookupWalletAddress(recipientEmail);
+        if (!recipientAddress) {
+          console.error("[Mail-Fi] Failed to lookup wallet address for:", recipientEmail);
+          btn.disabled = false;
+          btn.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #ef4444; border-radius: 6px; color: white; font-weight: 500; font-size: 13px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+              </svg>
+              <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+                <span style="font-size: 11px; opacity: 0.9;">Wallet not found</span>
+                <span style="font-size: 14px; font-weight: 700;">Try again</span>
+              </div>
+            </div>
+          `;
+          return;
         }
+        console.log("[Mail-Fi] Found wallet address:", recipientAddress, "for email:", recipientEmail);
+        btn.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 6px; color: white; font-weight: 500; font-size: 13px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+            </svg>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; flex: 1;">
+              <span style="font-size: 11px; opacity: 0.9;">Wallet found \u2713</span>
+              <span style="font-size: 14px; font-weight: 700;">${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}</span>
+            </div>
+            <button 
+              class="mailfi-disconnect-btn"
+              style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; color: white; padding: 2px 6px; font-size: 10px; cursor: pointer; margin-left: 4px;"
+              title="Disconnect wallet"
+            >
+              \u2715
+            </button>
+          </div>
+        `;
+        btn.disabled = false;
+      } else {
+        console.warn("[Mail-Fi] No email addresses found in To field");
+        btn.disabled = false;
+        return;
       }
-      console.log("[Mail-Fi] Extracted from To field:", recipientAddress);
     } catch (err) {
       console.warn("[Mail-Fi] Failed to extract recipient:", err);
+      btn.disabled = false;
+      return;
     }
     let destinationChain = "optimism";
     let sourceChain = "ethereum";
@@ -2128,6 +2681,7 @@ function observeComposeWindows() {
   });
   chrome.runtime.sendMessage({ type: "PING" }, () => {
   });
+  initializePaymentRequests();
 })();
 /*! Bundled license information:
 
