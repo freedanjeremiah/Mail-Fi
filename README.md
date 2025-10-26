@@ -6,11 +6,13 @@ ChainInBox is a Gmail protocol that integrates Avail Nexus SDK directly into Gma
 
 ## Overview
 
-ChainInBox solves three critical problems in cryptocurrency adoption:
+ChainInBox addresses three critical barriers to Web3 mass adoption:
 
-1. **Payment Complexity** - Eliminates manual wallet address management and chain switching
-2. **Fragmented Fundraising** - Enables startup investment pitches directly via email
-3. **Cross-Chain Friction** - Leverages Avail Nexus for automatic asset bridging
+1. **Web2 to Web3 Onboarding** - Bridges familiar email workflows with crypto transactions, allowing Web2 users to enter Web3 without learning new platforms or managing complex wallet interfaces
+
+2. **Email Value & Context** - Transforms email from communication tool to financial platform, ensuring crypto transactions carry business-level importance instead of being lost in spam or forgotten
+
+3. **Cross-Chain Complexity** - Automates multi-chain operations through Avail Nexus, enabling USDC transfers across any supported network without technical knowledge of bridging or gas optimization
 
 ---
 
