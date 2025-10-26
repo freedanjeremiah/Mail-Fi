@@ -1,6 +1,6 @@
 # ChainInBox: Cross-Chain Payments in Gmail via Avail Nexus
 
-ChainInBox is a Chrome extension that integrates Avail Nexus SDK directly into Gmail, enabling cross-chain cryptocurrency payments and startup investments without leaving your email interface.
+ChainInBox is a Gmail protocol that integrates Avail Nexus SDK directly into Gmail, enabling cross-chain cryptocurrency payments and startup investments without leaving your email interface.
 
 ---
 
@@ -40,7 +40,7 @@ ChainInBox solves three critical problems in cryptocurrency adoption:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Gmail Interface                                            │
-│  └── Chrome Extension (Manifest V3)                         │
+│  └── Gmail Protocol (Manifest V3)                           │
 │      ├── Content Scripts (payment detection & injection)    │
 │      └── Injected Nexus SDK (nexus-ca.js)                   │
 ├─────────────────────────────────────────────────────────────┤
@@ -68,7 +68,7 @@ ChainInBox solves three critical problems in cryptocurrency adoption:
 
 **Smart Contracts**: Solidity ^0.8.20, OpenZeppelin (ReentrancyGuard, SafeERC20)
 
-**Extension**: Chrome Manifest V3, esbuild bundler
+**Protocol**: Chrome Manifest V3, esbuild bundler
 
 ---
 
@@ -156,7 +156,7 @@ Bridge USDC to destination chain and execute contract call in single transaction
 ### Prerequisites
 - Node.js 18+, npm
 - Google Chrome browser
-- MetaMask wallet extension
+- MetaMask wallet protocol
 - USDC on testnet chains (use faucets)
 
 ### Setup
@@ -167,14 +167,14 @@ git clone https://github.com/freedanjeremiah/ChainInBox.git
 cd ChainInBox
 npm install
 
-# Build Chrome extension
+# Build Gmail protocol
 npm run build:ext
 
 # Start Next.js development server
 npm run dev  # Runs at localhost:3000
 ```
 
-### Load Extension in Chrome
+### Load Protocol in Chrome
 
 1. Navigate to `chrome://extensions/`
 2. Enable "Developer mode" (top right toggle)
@@ -214,7 +214,7 @@ npm run dev  # Runs at localhost:3000
    Contract Address: 0x1302C9F621046A2dc56F63dDc9A7A2FBBe8fE71c
    Project ID: 1
    ```
-2. Extension detects investment keywords and extracts metadata
+2. Protocol detects investment keywords and extracts metadata
 3. **"Invest in AI Healthcare Platform"** button appears in email
 4. Click button to open investment interface
 5. Review project details fetched from smart contract
@@ -281,8 +281,8 @@ ChainInBox/
 │   ├── Lend.sol                    # Lending protocol
 │   ├── LimitOrder.sol              # Token swap orders
 │   └── YieldFarmingContract.sol    # Staking rewards
-├── extension/                      # Chrome extension
-│   ├── manifest.json               # Extension config
+├── extension/                      # Gmail protocol
+│   ├── manifest.json               # Protocol config
 │   ├── content/
 │   │   ├── gmail.ts                # Compose window integration
 │   │   ├── gmail-payment-requests.ts  # Email parsing
@@ -301,7 +301,7 @@ ChainInBox/
 │       ├── contract-config.ts      # Contract addresses/ABIs
 │       └── tokenMapping.ts         # Token metadata
 └── scripts/
-    └── build-extension.ts          # Extension bundler
+    └── build-extension.ts          # Protocol bundler
 ```
 
 ---
@@ -318,7 +318,7 @@ ChainInBox/
 
 **Gas Optimization**: Immutable variables for single SLOAD operations, Events for historical data (cheaper than storage), Mapping-based lookups with O(1) complexity
 
-### Extension Security
+### Protocol Security
 
 **Manifest V3 Compliance**: No remote code execution, Minimal permissions (scripting, storage only), Host-restricted to mail.google.com and localhost:3000
 
@@ -334,10 +334,10 @@ ChainInBox/
 # Development server (Next.js)
 npm run dev
 
-# Build extension (production)
+# Build protocol (production)
 npm run build:ext
 
-# Watch mode (auto-rebuild extension on changes)
+# Watch mode (auto-rebuild protocol on changes)
 npm run watch:ext
 
 # Build Next.js app for production
@@ -352,10 +352,10 @@ npm run lint
 
 ### Debugging
 
-**Extension Console**:
+**Protocol Console**:
 ```javascript
-// Check extension status in browser console
-console.log('[ChainInBox] Extension loaded');
+// Check protocol status in browser console
+console.log('[ChainInBox] Protocol loaded');
 
 // Manually trigger payment detection
 chaininboxTriggerPaymentDetection();
