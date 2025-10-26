@@ -7,14 +7,7 @@ import { mainnet, sepolia, base, arbitrum, arbitrumSepolia, optimism, optimismSe
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getDefaultConfig } from 'connectkit';
 import { HybridWalletProvider } from './components/hybrid-wallet-provider';
-
-// Lazy-load NexusProvider to avoid server-side module evaluation of
-// `@avail-project/nexus-widgets` (it references browser-only APIs). This
-// ensures Next.js won't crash during SSR or config-time evaluation.
-const NexusProvider = React.lazy(async () => {
-  const mod = await import('@avail-project/nexus-widgets');
-  return { default: mod.NexusProvider };
-});
+import { NotificationProvider, TransactionPopupProvider } from '@blockscout/app-sdk';
 
 // Custom chain definitions for chains not available in wagmi/chains
 const baseSepolia = {
@@ -127,14 +120,18 @@ const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-        <HybridWalletProvider>
+    <HybridWalletProvider>
       <WagmiProvider config={config} reconnectOnMount={false}>
         <QueryClientProvider client={queryClient}>
-          <Suspense fallback={<>{children}</>}>
-            {children}
-          </Suspense>
+          <NotificationProvider>
+            <TransactionPopupProvider>
+              <Suspense fallback={<>{children}</>}>
+                {children}
+              </Suspense>
+            </TransactionPopupProvider>
+          </NotificationProvider>
         </QueryClientProvider>
       </WagmiProvider>
-        </HybridWalletProvider>
+    </HybridWalletProvider>
   );
 }

@@ -15,6 +15,7 @@
     "@avail-project/nexus": "^1.0.7-dev.0",
     "@avail-project/nexus-core": "^0.0.1",
     "@avail-project/nexus-widgets": "^0.0.5",
+    "@blockscout/app-sdk": "^0.1.2",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@magic-ext/connect": "^9.1.0",

@@ -9,6 +9,10 @@ import {
   useNexus,
   TransferButton,
 } from "@avail-project/nexus-widgets";
+import { BlockscoutSimple } from './blockscout-simple';
+import { useNotification, useTransactionPopup } from '@blockscout/app-sdk';
+import { WalletConnectButton } from './wallet-connect-button';
+import { BlockscoutFloatingButtonSimple } from './blockscout-floating-button-simple';
 
 interface InvestmentInterfaceProps {
   initialProjectId?: string;
@@ -48,6 +52,8 @@ export function InvestmentInterface({
   initialCorrelationId
 }: InvestmentInterfaceProps) {
   const { address: userAddress, chainId } = useAccount();
+  const { openTxToast } = useNotification();
+  const { openPopup } = useTransactionPopup();
   const [projectId, setProjectId] = useState(initialProjectId || '');
   const [contractAddress, setContractAddress] = useState<`0x${string}` | undefined>(undefined);
   const [usdcAddress, setUsdcAddress] = useState<`0x${string}` | undefined>(undefined);
@@ -121,25 +127,10 @@ export function InvestmentInterface({
   return (
     <NexusProvider config={{ 
       network: "testnet", 
-      debug: true,
-      rpcUrls: {
-        // Testnet chains - using the same RPC URLs as Nexus SDK
-        11155111: "https://sepolia.drpc.org", // Ethereum Sepolia
-        11155420: "https://opt-sepolia.g.alchemy.com/v2/PfaswrKq0rjOrfYWHfE9uLQKhiD4JCdq", // Optimism Sepolia
-        421614: "https://arb-sepolia.g.alchemy.com/v2/PfaswrKq0rjOrfYWHfE9uLQKhiD4JCdq", // Arbitrum Sepolia
-        84532: "https://base-sepolia.g.alchemy.com/v2/PfaswrKq0rjOrfYWHfE9uLQKhiD4JCdq", // Base Sepolia
-        80002: "https://polygon-amoy.g.alchemy.com/v2/PfaswrKq0rjOrfYWHfE9uLQKhiD4JCdq", // Polygon Amoy
-        // Mainnet chains - using the same RPC URLs as Nexus SDK
-        1: "https://lb.drpc.org/ethereum/Am5nENoJmEuovqui8_LMxzp4ChJzW7kR8JfPrqRhf0fE", // Ethereum
-        10: "https://lb.drpc.org/optimism/Am5nENoJmEuovqui8_LMxzp4ChJzW7kR8JfPrqRhf0fE", // Optimism
-        42161: "https://lb.drpc.org/arbitrum/Am5nENoJmEuovqui8_LMxzp4ChJzW7kR8JfPrqRhf0fE", // Arbitrum
-        8453: "https://lb.drpc.org/base/Am5nENoJmEuovqui8_LMxzp4ChJzW7kR8JfPrqRhf0fE", // Base
-        137: "https://lb.drpc.org/polygon/Am5nENoJmEuovqui8_LMxzp4ChJzW7kR8JfPrqRhf0fE", // Polygon
-        43114: "https://lb.drpc.org/avalanche/Am5nENoJmEuovqui8_LMxzp4ChJzW7kR8JfPrqRhf0fE", // Avalanche
-        56: "https://lb.drpc.org/bsc/Am5nENoJmEuovqui8_LMxzp4ChJzW7kR8JfPrqRhf0fE" // BSC
-      }
+      debug: true
     }}>
       <WalletBridge />
+          <BlockscoutFloatingButtonSimple />
       <div style={{ 
         minHeight: '100vh',
         background: '#ffffff',
@@ -153,43 +144,80 @@ export function InvestmentInterface({
         borderBottom: '1px solid #e5e5e5',
         padding: '32px 0'
       }}>
-        <div style={{
-          maxWidth: '600px',
-          margin: '0 auto',
-          padding: '0 24px',
-          textAlign: 'center'
-        }}>
           <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '64px',
-            height: '64px',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            borderRadius: '50%',
-            marginBottom: '20px',
-            animation: 'pulse 2s infinite'
+            maxWidth: '600px',
+            margin: '0 auto',
+            padding: '0 24px',
+            textAlign: 'center'
           }}>
-            <span style={{ fontSize: '28px' }}>📈</span>
-          </div>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: '400',
-            margin: '0 0 8px 0',
-            color: '#000000',
-            letterSpacing: '-0.02em'
-          }}>
-            Investment Opportunity
-          </h1>
-          <p style={{
-            fontSize: '16px',
-            color: '#666666',
-            margin: '0',
-            fontWeight: '300'
-          }}>
-            Invest in promising startups through Mail-Fi
-          </p>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '64px',
+              height: '64px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              borderRadius: '50%',
+              marginBottom: '20px',
+              animation: 'pulse 2s infinite'
+            }}>
+              <span style={{ fontSize: '28px' }}>📈</span>
+            </div>
+            <h1 style={{
+              fontSize: '28px',
+              fontWeight: '400',
+              margin: '0 0 8px 0',
+              color: '#000000',
+              letterSpacing: '-0.02em'
+            }}>
+              Investment Opportunity
+            </h1>
+            <p style={{
+              fontSize: '16px',
+              color: '#666666',
+              margin: '0 0 20px 0',
+              fontWeight: '300'
+            }}>
+              Invest in promising startups through Mail-Fi
+            </p>
+            
+        {/* Wallet Connect Button */}
+        <div style={{ marginBottom: '20px' }}>
+          <WalletConnectButton />
         </div>
+
+        {/* Transaction History Button */}
+        {userAddress && (
+          <div style={{ marginBottom: '20px' }}>
+            <button 
+              onClick={() => openPopup({
+                chainId: "84532", // Base Sepolia
+                address: userAddress
+              })}
+              style={{
+                width: '100%',
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>📊</span>
+              <span>View Transaction History</span>
+            </button>
+          </div>
+        )}
+          </div>
       </div>
 
       {/* Main Content */}
@@ -583,6 +611,11 @@ export function InvestmentInterface({
                 amount: projectDetails?.minInvestment || "1"
               };
               
+              // Show Blockscout transaction toast
+              if (transactionData.txHash) {
+                openTxToast("84532", transactionData.txHash); // Base Sepolia chain ID
+              }
+              
               if (window.opener) {
                 window.opener.postMessage({
                   type: 'MAILFI_INVESTMENT_SUCCESS',
@@ -682,6 +715,14 @@ export function InvestmentInterface({
           )}
         </div>
 
+        {/* Blockscout Dashboard */}
+        <div style={{ marginTop: '32px' }}>
+          <BlockscoutSimple 
+            chainId="84532" 
+            address={userAddress}
+          />
+        </div>
+
         {/* Footer */}
         <div style={{
           background: '#f8f9fa',
@@ -705,7 +746,7 @@ export function InvestmentInterface({
               color: '#666666',
               fontWeight: '500'
             }}>
-              Powered by Mail-Fi Investment Escrow
+              Powered by Mail-Fi Investment Escrow & Blockscout
             </p>
           </div>
           <p style={{
@@ -713,7 +754,7 @@ export function InvestmentInterface({
             fontSize: '12px',
             color: '#9ca3af'
           }}>
-            Secure investment platform with smart contract escrow
+            Secure investment platform with smart contract escrow and real-time transaction monitoring
           </p>
         </div>
       </div>
