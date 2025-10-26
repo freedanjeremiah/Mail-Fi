@@ -360,6 +360,3 @@ console.log('[ChainInBox] Extension loaded');
 // Manually trigger payment detection
 chaininboxTriggerPaymentDetection();
 ```
-
-
-MIT License
