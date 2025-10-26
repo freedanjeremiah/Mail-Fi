@@ -19,6 +19,8 @@
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@magic-ext/connect": "^9.1.0",
     "@tanstack/react-query": "^5.90.5",
+    "@types/archiver": "^6.0.4",
+    "archiver": "^7.0.1",
     "connectkit": "^1.9.1",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "magic-sdk": "^31.0.0",

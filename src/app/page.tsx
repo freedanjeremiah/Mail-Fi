@@ -81,18 +81,18 @@ export default function SetupGuide() {
         }}>
           <h1 style={{
             fontSize: '32px',
-            fontWeight: '400',
+            fontWeight: '700',
             margin: '0 0 8px 0',
             color: '#000000',
             letterSpacing: '-0.02em'
           }}>
-            Mail-Fi Setup Guide
+            ChainInbox Setup Guide
           </h1>
           <p style={{
             fontSize: '18px',
-            color: '#666666',
+            color: '#333333',
             margin: '0',
-            fontWeight: '300'
+            fontWeight: '500'
           }}>
             Transform your Gmail into a crypto wallet in 2 simple steps
           </p>
@@ -115,17 +115,18 @@ export default function SetupGuide() {
         }}>
           <h2 style={{
             fontSize: '20px',
-            fontWeight: '500',
+            fontWeight: '700',
             margin: '0 0 16px 0',
             color: '#000000'
           }}>
-            What is Mail-Fi?
+            What is ChainInbox?
           </h2>
           <p style={{
             fontSize: '16px',
             color: '#000000',
             margin: '0 0 20px 0',
-            lineHeight: '1.6'
+            lineHeight: '1.6',
+            fontWeight: '500'
           }}>
             Mail-Fi is a Chrome extension that enables crypto payments directly in Gmail. 
             Send USDC, ETH, and other tokens to anyone with just their email address.
@@ -136,7 +137,8 @@ export default function SetupGuide() {
             borderRadius: '6px',
             padding: '20px',
             fontSize: '14px',
-            color: '#000000'
+            color: '#000000',
+            fontWeight: '600'
           }}>
             <strong>How it works:</strong> Add recipient's Ethereum address to the "To" field, 
             specify amount and token in the subject line, click "Pay with Avail" button, 
@@ -178,7 +180,7 @@ export default function SetupGuide() {
               </div>
               <h3 style={{
                 fontSize: '20px',
-                fontWeight: '500',
+                fontWeight: '700',
                 margin: '0',
                 color: '#000000'
               }}>
@@ -188,9 +190,10 @@ export default function SetupGuide() {
             
             <p style={{
               fontSize: '16px',
-              color: '#666666',
+              color: '#333333',
               margin: '0 0 24px 0',
-              lineHeight: '1.6'
+              lineHeight: '1.6',
+              fontWeight: '500'
             }}>
               Enter your email address to create a crypto wallet. We'll send you a magic link to authenticate.
             </p>
@@ -277,7 +280,8 @@ export default function SetupGuide() {
                   borderRadius: '6px',
                   padding: '16px',
                   fontSize: '14px',
-                  color: '#666666'
+                  color: '#333333',
+                  fontWeight: '500'
                 }}>
                   <strong>Note:</strong> You'll receive a magic link in your email to complete the setup.
                 </div>
@@ -330,23 +334,6 @@ export default function SetupGuide() {
               </div>
             )}
           </div>
-          
-          {/* Screenshot placeholder */}
-          <div style={{
-            flex: '0 0 300px',
-            background: '#f8f9fa',
-            border: '2px dashed #d1d5db',
-            borderRadius: '6px',
-            height: '200px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#9ca3af',
-            fontSize: '14px',
-            textAlign: 'center'
-          }}>
-            📸 Screenshot<br/>Placeholder
-          </div>
         </div>
 
         {/* Step 2: Extension Installation */}
@@ -383,7 +370,7 @@ export default function SetupGuide() {
               </div>
               <h3 style={{
                 fontSize: '20px',
-                fontWeight: '500',
+                fontWeight: '700',
                 margin: '0',
                 color: '#000000'
               }}>
@@ -393,19 +380,20 @@ export default function SetupGuide() {
             
             <p style={{
               fontSize: '16px',
-              color: '#666666',
+              color: '#333333',
               margin: '0 0 24px 0',
-              lineHeight: '1.6'
+              lineHeight: '1.6',
+              fontWeight: '500'
             }}>
               Add the Mail-Fi extension to Chrome to enable crypto payments directly in Gmail.
             </p>
 
             <button
               onClick={() => {
-                // Open Chrome extensions page
-                window.open('chrome://extensions/', '_blank');
-                // Show instructions
-                alert('1. Enable "Developer mode" in the top right\n2. Click "Load unpacked"\n3. Select the "dist/extension" folder\n4. The Mail-Fi extension will be installed!');
+                // Show instructions for manual installation
+                const instructions = `To install the Mail-Fi extension:\n\n1. Open Chrome and go to chrome://extensions/\n2. Enable "Developer mode" in the top right\n3. Click "Load unpacked"\n4. Navigate to the project folder and select the "dist/extension" directory\n5. The Mail-Fi extension will be installed!\n\nNote: The extension files are located in the dist/extension folder of this project.`;
+                
+                alert(instructions);
               }}
               style={{
                 background: '#000000',
@@ -426,7 +414,7 @@ export default function SetupGuide() {
                 e.currentTarget.style.background = '#000000';
               }}
             >
-              Add Extension to Chrome
+              📋 Install Extension Instructions
             </button>
 
             <div style={{
@@ -435,28 +423,12 @@ export default function SetupGuide() {
               borderRadius: '6px',
               padding: '16px',
               fontSize: '14px',
-              color: '#666666'
+              color: '#333333',
+              fontWeight: '500'
             }}>
-              <strong>Quick Setup:</strong> Click the button above to open Chrome Extensions, 
-              then follow the simple 3-step process to install Mail-Fi.
+              <strong>Quick Setup:</strong> Click the button above to get installation instructions, 
+              then follow the simple process to add Mail-Fi to Chrome.
             </div>
-          </div>
-          
-          {/* Screenshot placeholder */}
-          <div style={{
-            flex: '0 0 300px',
-            background: '#f8f9fa',
-            border: '2px dashed #d1d5db',
-            borderRadius: '6px',
-            height: '200px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#9ca3af',
-            fontSize: '14px',
-            textAlign: 'center'
-          }}>
-            📸 Screenshot<br/>Placeholder
           </div>
         </div>
 
@@ -470,7 +442,7 @@ export default function SetupGuide() {
         }}>
           <h3 style={{
             fontSize: '20px',
-            fontWeight: '500',
+            fontWeight: '700',
             margin: '0 0 20px 0',
             color: '#000000'
           }}>
@@ -492,7 +464,7 @@ export default function SetupGuide() {
               }}>
                 <h4 style={{
                   fontSize: '16px',
-                  fontWeight: '500',
+                  fontWeight: '700',
                   margin: '0 0 12px 0',
                   color: '#000000'
                 }}>
@@ -500,8 +472,9 @@ export default function SetupGuide() {
                 </h4>
                 <p style={{
                   fontSize: '14px',
-                  color: '#666666',
-                  margin: '0 0 12px 0'
+                  color: '#333333',
+                  margin: '0 0 12px 0',
+                  fontWeight: '500'
                 }}>
                   In Gmail, add the recipient's Ethereum address to the "To" field
                 </p>
@@ -527,7 +500,7 @@ export default function SetupGuide() {
               }}>
                 <h4 style={{
                   fontSize: '16px',
-                  fontWeight: '500',
+                  fontWeight: '700',
                   margin: '0 0 12px 0',
                   color: '#000000'
                 }}>
@@ -535,8 +508,9 @@ export default function SetupGuide() {
                 </h4>
                 <p style={{
                   fontSize: '14px',
-                  color: '#666666',
-                  margin: '0 0 12px 0'
+                  color: '#333333',
+                  margin: '0 0 12px 0',
+                  fontWeight: '500'
                 }}>
                   Include amount, token, and chain information in the subject
                 </p>
@@ -561,7 +535,7 @@ export default function SetupGuide() {
               }}>
                 <h4 style={{
                   fontSize: '16px',
-                  fontWeight: '500',
+                  fontWeight: '700',
                   margin: '0 0 12px 0',
                   color: '#000000'
                 }}>
@@ -569,29 +543,13 @@ export default function SetupGuide() {
                 </h4>
                 <p style={{
                   fontSize: '14px',
-                  color: '#666666',
-                  margin: '0'
+                  color: '#333333',
+                  margin: '0',
+                  fontWeight: '500'
                 }}>
                   The extension will show a "Pay with Avail" button. Click it to complete the payment.
                 </p>
               </div>
-            </div>
-            
-            {/* Screenshot placeholder for usage guide */}
-            <div style={{
-              flex: '0 0 300px',
-              background: '#f8f9fa',
-              border: '2px dashed #d1d5db',
-              borderRadius: '6px',
-              height: '300px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#9ca3af',
-              fontSize: '14px',
-              textAlign: 'center'
-            }}>
-              📸 Screenshot<br/>Placeholder
             </div>
           </div>
         </div>
@@ -608,7 +566,7 @@ export default function SetupGuide() {
             <div style={{ fontSize: '48px', marginBottom: '20px' }}>🎉</div>
             <h3 style={{
               fontSize: '20px',
-              fontWeight: '500',
+              fontWeight: '700',
               margin: '0 0 12px 0',
               color: '#0c4a6e'
             }}>
@@ -617,7 +575,8 @@ export default function SetupGuide() {
             <p style={{
               fontSize: '16px',
               color: '#0c4a6e',
-              margin: '0 0 24px 0'
+              margin: '0 0 24px 0',
+              fontWeight: '500'
             }}>
               Your Gmail wallet is ready. Start making crypto payments!
             </p>
