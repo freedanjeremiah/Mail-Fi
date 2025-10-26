@@ -554,6 +554,251 @@ export default function SetupGuide() {
           </div>
         </div>
 
+        {/* Supported Chains */}
+        <div style={{
+          background: '#ffffff',
+          border: '1px solid #e5e5e5',
+          borderRadius: '8px',
+          padding: '32px',
+          marginBottom: '40px',
+          textAlign: 'center'
+        }}>
+          <h3 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            margin: '0 0 16px 0',
+            color: '#000000'
+          }}>
+            Available for All Supported Chains Through Avail
+          </h3>
+          <p style={{
+            fontSize: '16px',
+            color: '#333333',
+            margin: '0 0 32px 0',
+            fontWeight: '500',
+            lineHeight: '1.6'
+          }}>
+            Mail-Fi supports cross-chain transactions across multiple networks, enabling seamless crypto payments 
+            through Gmail with the power of Avail's Nexus protocol.
+          </p>
+          
+          {/* Transaction Examples - Images */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '24px',
+            marginBottom: '32px'
+          }}>
+            {/* Image 1 */}
+            <div style={{
+              background: '#f8f9fa',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center'
+            }}>
+              <img 
+                src="/images/WhatsApp Image 2025-10-25 at 19.52.12_36588b70.jpg"
+                alt="Cross-chain investment transaction"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: '6px',
+                  maxHeight: '400px',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+
+            {/* Image 2 */}
+            <div style={{
+              background: '#f8f9fa',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center'
+            }}>
+              <img 
+                src="/images/WhatsApp Image 2025-10-25 at 19.53.51_381e14d8.jpg"
+                alt="Transferring complete transaction"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: '6px',
+                  maxHeight: '400px',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+
+            {/* Image 3 */}
+            <div style={{
+              background: '#f8f9fa',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center'
+            }}>
+              <img 
+                src="/images/WhatsApp Image 2025-10-25 at 19.58.55_70bf88f8.jpg"
+                alt="Nexus widget transaction"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: '6px',
+                  maxHeight: '400px',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+
+            {/* Image 4 */}
+            <div style={{
+              background: '#f8f9fa',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center'
+            }}>
+              <img 
+                src="/images/WhatsApp Image 2025-10-25 at 20.03.53_5d9b874b.jpg"
+                alt="Transferring complete to Base Sepolia"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: '6px',
+                  maxHeight: '400px',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+
+            {/* Image 5 */}
+            <div style={{
+              background: '#f8f9fa',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center'
+            }}>
+              <img 
+                src="/images/WhatsApp Image 2025-10-25 at 20.38.35_8b184d80.jpg"
+                alt="Insufficient balance error"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: '6px',
+                  maxHeight: '400px',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+
+            {/* Image 6 */}
+            <div style={{
+              background: '#f8f9fa',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center'
+            }}>
+              <img 
+                src="/images/WhatsApp Image 2025-10-25 at 20.47.59_4e634f8a.jpg"
+                alt="USDC to BNB Smart Chain transaction"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: '6px',
+                  maxHeight: '400px',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+
+            {/* Image 7 */}
+            <div style={{
+              background: '#f8f9fa',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center'
+            }}>
+              <img 
+                src="/images/WhatsApp Image 2025-10-26 at 14.50.54_6dd09277.jpg"
+                alt="USDC to Base Sepolia transaction"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: '6px',
+                  maxHeight: '400px',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Supported Networks */}
+          <div style={{
+            background: '#f0f9ff',
+            border: '1px solid #0ea5e9',
+            borderRadius: '8px',
+            padding: '24px',
+            marginBottom: '24px'
+          }}>
+            <h4 style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              margin: '0 0 16px 0',
+              color: '#0c4a6e'
+            }}>
+              Supported Networks
+            </h4>
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '12px',
+              justifyContent: 'center'
+            }}>
+              {['Ethereum Sepolia', 'Base Sepolia', 'Optimism Sepolia', 'Polygon', 'BNB Smart Chain', 'Avalanche'].map((chain) => (
+                <div key={chain} style={{
+                  background: '#ffffff',
+                  border: '1px solid #0ea5e9',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#0c4a6e'
+                }}>
+                  {chain}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Powered by Avail */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            fontSize: '16px',
+            fontWeight: '500',
+            color: '#333333'
+          }}>
+            <span>Powered by</span>
+            <div style={{
+              background: '#000000',
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: '700'
+            }}>
+              Avail Nexus
+            </div>
+          </div>
+        </div>
+
         {/* Ready to Use */}
         {isLoggedIn && (
           <div style={{
