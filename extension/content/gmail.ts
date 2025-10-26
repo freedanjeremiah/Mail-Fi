@@ -1,5 +1,6 @@
 // Import email-to-wallet mapping
 import { lookupWalletAddress, extractEmailAddresses } from './email-wallet-mapping';
+import { initializePaymentRequests } from './gmail-payment-requests';
 
 // Inject Nexus SDK bundle into page (like nexus-hyperliquid-poc)
 function injectNexusBundle() {
@@ -556,4 +557,7 @@ function observeComposeWindows() {
   });
 
   chrome.runtime.sendMessage({ type: 'PING' }, () => {});
+  
+  // Initialize payment request detection
+  initializePaymentRequests();
 })();
