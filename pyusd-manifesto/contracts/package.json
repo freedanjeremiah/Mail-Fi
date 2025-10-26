@@ -1,0 +1,22 @@
+{
+  "name": "mail-fi-contracts",
+  "version": "1.0.0",
+  "description": "Ethereum smart contracts for Mail-Fi",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:sepolia": "hardhat run deploy.js --network sepolia",
+    "deploy:mumbai": "hardhat run deploy.js --network mumbai",
+    "deploy:amoy": "hardhat run deploy.js --network amoy",
+    "deploy:base": "hardhat run deploy.js --network baseSepolia",
+    "deploy:arbitrum": "hardhat run deploy.js --network arbitrumSepolia",
+    "test": "hardhat test",
+    "verify": "hardhat verify"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  }
+}

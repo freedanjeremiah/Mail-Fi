@@ -1,0 +1,11 @@
+[package]
+name = "pyusd_manifesto_contracts"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+borsh = "0.9.3"
+solana-program = "1.10.35"
+
+[lib]
+crate-type = ["cdylib", "lib"]

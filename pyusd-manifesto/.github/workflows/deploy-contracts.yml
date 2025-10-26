@@ -1,0 +1,101 @@
+name: Build and Deploy Solana Contracts
+
+on:
+  push:
+    branches: [main, deploy]
+    paths:
+      - 'programs/**'
+      - 'Anchor.toml'
+      - '.github/workflows/deploy-contracts.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          solana --version
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor --tag v0.32.1 anchor-cli --locked --force
+
+      - name: Setup Solana Keypair
+        env:
+          SOLANA_KEYPAIR: ${{ secrets.SOLANA_DEPLOY_KEYPAIR }}
+        run: |
+          mkdir -p ~/.config/solana
+          echo "$SOLANA_KEYPAIR" > ~/.config/solana/id.json
+          chmod 600 ~/.config/solana/id.json
+          solana config set --url https://api.devnet.solana.com
+          solana address
+          solana balance || echo "No balance yet"
+
+      - name: Request Airdrop (if needed)
+        run: |
+          BALANCE=$(solana balance | awk '{print $1}')
+          if (( $(echo "$BALANCE < 1" | bc -l) )); then
+            echo "Requesting airdrop..."
+            solana airdrop 2 || true
+            sleep 5
+          fi
+          solana balance
+
+      - name: Build Anchor Program
+        run: |
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"
+          anchor build
+          ls -la target/deploy/
+
+      - name: Deploy to Devnet
+        run: |
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"
+          anchor deploy --provider.cluster devnet
+          echo "Deployment complete!"
+
+      - name: Display Program ID
+        run: |
+          echo "Program deployed successfully!"
+          cat target/deploy/pyusd_manifesto_contracts-keypair.json | jq -r 'map(tostring) | join(",")' | solana-keygen pubkey -
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: program-artifacts
+          path: |
+            target/deploy/*.so
+            target/idl/*.json
+            target/deploy/*-keypair.json
+
+      - name: Create Deployment Summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Contracts deployed to Solana Devnet**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          PROGRAM_ID=$(cat target/deploy/pyusd_manifesto_contracts-keypair.json | jq -r 'map(tostring) | join(",")' | solana-keygen pubkey -)
+          echo "**Program ID:** \`$PROGRAM_ID\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Binary: \`pyusd_manifesto_contracts.so\`" >> $GITHUB_STEP_SUMMARY
+          echo "- IDL: \`pyusd_manifesto_contracts.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download artifacts from this workflow run" >> $GITHUB_STEP_SUMMARY
+          echo "2. Copy IDL to \`lib/contracts/idl.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update program ID in code if different" >> $GITHUB_STEP_SUMMARY
+          echo "4. Integrate with frontend" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,97 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Next.js
+.next
+out
+build
+dist
+
+# Testing
+coverage
+.nyc_output
+
+# Production
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# Solana/Rust
+target/
+Cargo.lock
+**/*.rs.bk
+test-ledger/
+.anchor
+.anchor-cache
+programs/**/target/
+
+# Build artifacts
+*.so
+*.dylib
+*.dll
+*.exe
+*.zip
+*.tar.gz
+programs/pyusd-manifesto-contracts/target/
+native-escrow/
+
+# Backup files
+*.bak
+*.backup
+src/*.bak
+*.anchor.bak
+
+# Deployment artifacts
+deployed_program.so
+old_program.so
+program-keypair.json
+*.json.bak
+
+# Temp files
+/tmp/
+simple-escrow.rs
+test-escrow.ts
+minimal-contract/
+
+# Lock files (optional - uncomment if needed)
+# package-lock.json
+# yarn.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation (generated)
+DEPLOYMENT_STATUS.md
+SOLANA_PLAYGROUND_DEPLOY.md
+BUILD_SOLUTION.md
+DEPLOYMENT_SUMMARY.md
+DEPLOY_CONTRACTS.md
+RENAME_SUMMARY.md
+SIMPLE_BUILD_SOLUTION.md
+STAKING_FEATURE.md
+IMPLEMENTATION_PLAN.txt
+IMPLEMENTATION_STATUS.md
+WINDOWS_BUILD_GUIDE.md
+
+# Docker
+docker-target

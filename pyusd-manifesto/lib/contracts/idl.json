@@ -1,0 +1,362 @@
+{
+  "version": "0.1.0",
+  "name": "pyusd_manifesto_contracts",
+  "instructions": [
+    {
+      "name": "createEscrow",
+      "accounts": [
+        { "name": "escrow", "isMut": true, "isSigner": false },
+        { "name": "creator", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "recipient", "type": "publicKey" },
+        { "name": "expiryTime", "type": "i64" },
+        { "name": "description", "type": "string" }
+      ]
+    },
+    {
+      "name": "fundEscrow",
+      "accounts": [
+        { "name": "escrow", "isMut": true, "isSigner": false },
+        { "name": "creator", "isMut": true, "isSigner": true },
+        { "name": "escrowTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "creatorTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "claimEscrow",
+      "accounts": [
+        { "name": "escrow", "isMut": true, "isSigner": false },
+        { "name": "recipient", "isMut": true, "isSigner": true },
+        { "name": "escrowTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "recipientTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancelEscrow",
+      "accounts": [
+        { "name": "escrow", "isMut": true, "isSigner": false },
+        { "name": "creator", "isMut": true, "isSigner": true },
+        { "name": "escrowTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "creatorTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "createRecurringPayment",
+      "accounts": [
+        { "name": "recurringPayment", "isMut": true, "isSigner": false },
+        { "name": "payer", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "recipient", "type": "publicKey" },
+        { "name": "intervalSeconds", "type": "i64" },
+        { "name": "totalPayments", "type": "u64" },
+        { "name": "description", "type": "string" }
+      ]
+    },
+    {
+      "name": "executeRecurringPayment",
+      "accounts": [
+        { "name": "recurringPayment", "isMut": true, "isSigner": false },
+        { "name": "payer", "isMut": true, "isSigner": false },
+        { "name": "recipient", "isMut": true, "isSigner": false },
+        { "name": "payerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "recipientTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancelRecurringPayment",
+      "accounts": [
+        { "name": "recurringPayment", "isMut": true, "isSigner": false },
+        { "name": "payer", "isMut": true, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "createMultisig",
+      "accounts": [
+        { "name": "multisig", "isMut": true, "isSigner": false },
+        { "name": "creator", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "owners", "type": { "vec": "publicKey" } },
+        { "name": "threshold", "type": "u64" }
+      ]
+    },
+    {
+      "name": "proposeTransaction",
+      "accounts": [
+        { "name": "transaction", "isMut": true, "isSigner": false },
+        { "name": "multisig", "isMut": false, "isSigner": false },
+        { "name": "proposer", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "recipient", "type": "publicKey" },
+        { "name": "description", "type": "string" }
+      ]
+    },
+    {
+      "name": "approveTransaction",
+      "accounts": [
+        { "name": "transaction", "isMut": true, "isSigner": false },
+        { "name": "multisig", "isMut": false, "isSigner": false },
+        { "name": "owner", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "executeTransaction",
+      "accounts": [
+        { "name": "transaction", "isMut": true, "isSigner": false },
+        { "name": "multisig", "isMut": false, "isSigner": false },
+        { "name": "multisigTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "recipientTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "owner", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "rejectTransaction",
+      "accounts": [
+        { "name": "transaction", "isMut": true, "isSigner": false },
+        { "name": "multisig", "isMut": false, "isSigner": false },
+        { "name": "owner", "isMut": true, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "initializeStakingPool",
+      "accounts": [
+        { "name": "stakingPool", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "rewardVault", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "rewardRatePerSecond", "type": "u64" }
+      ]
+    },
+    {
+      "name": "stake",
+      "accounts": [
+        { "name": "stakingPool", "isMut": true, "isSigner": false },
+        { "name": "userStake", "isMut": true, "isSigner": false },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "userTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "poolTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "lockPeriod", "type": { "defined": "LockPeriod" } }
+      ]
+    },
+    {
+      "name": "claimRewards",
+      "accounts": [
+        { "name": "stakingPool", "isMut": true, "isSigner": false },
+        { "name": "userStake", "isMut": true, "isSigner": false },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "rewardVault", "isMut": true, "isSigner": false },
+        { "name": "userTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "unstake",
+      "accounts": [
+        { "name": "stakingPool", "isMut": true, "isSigner": false },
+        { "name": "userStake", "isMut": true, "isSigner": false },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "poolTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "userTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "compoundRewards",
+      "accounts": [
+        { "name": "stakingPool", "isMut": true, "isSigner": false },
+        { "name": "userStake", "isMut": true, "isSigner": false },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "rewardVault", "isMut": true, "isSigner": false },
+        { "name": "poolTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Escrow",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "creator", "type": "publicKey" },
+          { "name": "recipient", "type": "publicKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "expiryTime", "type": "i64" },
+          { "name": "description", "type": "string" },
+          { "name": "funded", "type": "bool" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "RecurringPayment",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "payer", "type": "publicKey" },
+          { "name": "recipient", "type": "publicKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "intervalSeconds", "type": "i64" },
+          { "name": "totalPayments", "type": "u64" },
+          { "name": "paymentsExecuted", "type": "u64" },
+          { "name": "lastPaymentTime", "type": "i64" },
+          { "name": "description", "type": "string" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "Multisig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "owners", "type": { "vec": "publicKey" } },
+          { "name": "threshold", "type": "u64" },
+          { "name": "transactionCount", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "MultisigTransaction",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "multisig", "type": "publicKey" },
+          { "name": "proposer", "type": "publicKey" },
+          { "name": "recipient", "type": "publicKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "description", "type": "string" },
+          { "name": "approvals", "type": { "vec": "publicKey" } },
+          { "name": "executed", "type": "bool" },
+          { "name": "transactionId", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "StakingPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "publicKey" },
+          { "name": "rewardVault", "type": "publicKey" },
+          { "name": "totalStaked", "type": "u64" },
+          { "name": "rewardRatePerSecond", "type": "u64" },
+          { "name": "lastUpdateTime", "type": "i64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "UserStake",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "stakingPool", "type": "publicKey" },
+          { "name": "user", "type": "publicKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "lockPeriod", "type": { "defined": "LockPeriod" } },
+          { "name": "stakingTier", "type": { "defined": "StakingTier" } },
+          { "name": "stakeTime", "type": "i64" },
+          { "name": "lastClaimTime", "type": "i64" },
+          { "name": "unlockTime", "type": "i64" },
+          { "name": "pendingRewards", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "LockPeriod",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          { "name": "None" },
+          { "name": "ThirtyDays" },
+          { "name": "NinetyDays" },
+          { "name": "OneEightyDays" }
+        ]
+      }
+    },
+    {
+      "name": "StakingTier",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          { "name": "Bronze" },
+          { "name": "Silver" },
+          { "name": "Gold" },
+          { "name": "Diamond" }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "EscrowExpired", "msg": "Escrow has expired" },
+    { "code": 6001, "name": "EscrowNotExpired", "msg": "Escrow has not expired yet" },
+    { "code": 6002, "name": "Unauthorized", "msg": "Unauthorized access" },
+    { "code": 6003, "name": "AlreadyFunded", "msg": "Escrow already funded" },
+    { "code": 6004, "name": "NotFunded", "msg": "Escrow not funded" },
+    { "code": 6005, "name": "PaymentNotDue", "msg": "Payment not due yet" },
+    { "code": 6006, "name": "AllPaymentsCompleted", "msg": "All payments completed" },
+    { "code": 6007, "name": "InsufficientApprovals", "msg": "Insufficient approvals" },
+    { "code": 6008, "name": "AlreadyExecuted", "msg": "Transaction already executed" },
+    { "code": 6009, "name": "InvalidThreshold", "msg": "Invalid threshold" },
+    { "code": 6010, "name": "TooManyOwners", "msg": "Too many owners" },
+    { "code": 6011, "name": "AlreadyApproved", "msg": "Owner already approved" },
+    { "code": 6012, "name": "NotAnOwner", "msg": "Not an owner" },
+    { "code": 6013, "name": "InvalidCalculation", "msg": "Invalid calculation" },
+    { "code": 6014, "name": "NoRewardsToClaim", "msg": "No rewards to claim" },
+    { "code": 6015, "name": "StakeStillLocked", "msg": "Stake is still locked" },
+    { "code": 6016, "name": "InsufficientStake", "msg": "Insufficient stake amount" }
+  ]
+}
